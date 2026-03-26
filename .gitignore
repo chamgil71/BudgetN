@@ -1,0 +1,53 @@
+# 가상환경
+venv/
+venv_*/
+.venv/
+env/
+ENV/
+stock/venv_311/
+.obsidian/
+coding.code-workspace
+node_modules/
+
+# 임시 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*_Standalone.html
+backup/
+temp/
+tmp/
+data_sample/
+fonts/
+
+# 설정 파일
+.vscode/
+.idea/
+.antigravity/
+.DS_Store
+Thumbs.db
+
+.env
+!.env.example
+
+
+# 로그 파일
+*.log
+data/logs/
+build/
+dist/
+*.spec
+logs/
+
+# Database
+storage/database/*.db
+storage/database/*.db-journal
+storage/cache/*
+storage/exports/*
+storage/logs/*
+!storage/database/.gitkeep
+!storage/cache/.gitkeep
+!storage/exports/.gitkeep
+!storage/logs/.gitkeep
+
+.obsidian/workspace.json
