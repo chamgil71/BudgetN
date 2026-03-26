@@ -1,0 +1,50 @@
+# ============================================================
+# config_a4.yaml — A4 요약표 출력 설정
+# 순방향: merged.json → A4 요약표 XLSX
+# 역방향: A4 요약표 XLSX → merged.json (convert_a4.py)
+# ============================================================
+
+output:
+  dir: output/
+  filename_prefix: "A4요약_AI재정사업"
+  # one_sheet_per_project: true  → 1파일 N시트 (시트명=사업코드)
+  # one_sheet_per_project: false → 부처별 파일 분리
+  one_sheet_per_project: true
+
+paper:
+  orientation: portrait   # 세로
+  # A4 기준 openpyxl DXA: 가로=11906, 세로=16838
+  print_area_cols: 9      # 인쇄 영역 열 수
+  fit_to_page: true       # 1페이지에 맞춤
+
+# 섹션 on/off (config만 바꾸면 됨)
+sections:
+  header: true            # 부처명·사업코드·사업명
+  basic_info: true        # 회계유형·분야·상태 등
+  budget_table: true      # 연도별 예산표
+  ai_classification: true # AI도메인·기술유형·R&D단계
+  sub_projects: true      # 내역사업표
+  purpose: true           # 사업목적
+  description: true       # 사업내용 (config로 끄기 가능)
+  legal_basis: false      # 법적근거 (기본 제외)
+
+# 출력 필터 (null = 전체)
+filter:
+  department: null
+  status: null
+  is_rnd: null
+  min_budget: null
+
+# Named Range 태깅 (역방향 추출용, 반드시 true)
+enable_named_ranges: true
+
+style:
+  font_name: "맑은 고딕"
+  title_size: 13
+  body_size: 9
+  label_size: 8
+  header_bg: "1F3864"     # 헤더 배경 (진남)
+  section_bg: "D6E4F0"    # 섹션 배경 (연파랑)
+  label_bg:   "F2F7FF"    # 레이블 배경
+  key_bg:     "FFFDE7"    # 연결키 배경 (연노랑)
+  alt_row:    "F8FBFF"    # 내역사업 짝수행

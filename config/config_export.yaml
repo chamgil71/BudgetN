@@ -1,0 +1,134 @@
+# ============================================================
+# config_export.yaml v2.0 — 총괄 XLSX 출력 설정
+# ============================================================
+
+output:
+  dir: output/
+  filename_prefix: "총괄_AI재정사업"
+  open_after: false
+
+sheet_projects:
+  name: "사업목록"
+  freeze_panes: "A4"
+  row_height: 18
+  header_row_height: 32
+  auto_filter: true
+
+  # json_field: "헤더명" — 원하는 컬럼만 남기고 나머지 # 처리
+  columns:
+    id:                         "No"
+    department:                 "부처명"
+    project_name:               "사업명"
+    code:                       "사업코드"
+    account_type:               "회계유형"
+    field:                      "분야"
+    sector:                     "부문"
+    status:                     "상태"
+    support_type:               "지원유형"
+    implementing_agency:        "시행기관"
+    is_rnd:                     "R&D"
+    is_informatization:         "정보화"
+    "budget.2024_settlement":   "2024결산"       # years.settlement
+    "budget.2025_original":     "2025본예산"     # years.original
+    "budget.2026_budget":       "2026확정"       # years.budget
+    "budget.change_amount":     "증감액"
+    "budget.change_rate":       "증감률(%)"
+    "project_period.start_year": "시작연도"
+    "project_period.end_year":   "종료연도"
+    ai_domains:                 "AI도메인"
+    rnd_stage:                  "R&D단계"
+    keywords:                   "키워드"
+    # 아래는 필요 시 주석 해제
+    # "budget.2025_supplementary": "2025추경"
+    # "budget.2026_request":       "2026요구"
+    # "total_cost.total":          "총사업비"
+    # "total_cost.government":     "국고"
+    # ai_tech:                     "AI기술유형"
+    # subsidy_rate:                "보조율"
+    # loan_rate:                   "융자율"
+    # purpose:                     "사업목적"
+    # effectiveness:               "효과성"
+
+  column_widths:
+    "No":        5
+    "부처명":    14
+    "사업명":    35
+    "사업코드":  12
+    "회계유형":  10
+    "분야":      16
+    "부문":      12
+    "상태":       7
+    "지원유형":  10
+    "시행기관":  16
+    "R&D":        6
+    "정보화":     7
+    "2024결산":  12
+    "2025본예산":  12
+    "2026확정":  12
+    "증감액":    12
+    "증감률(%)": 10
+    "시작연도":   9
+    "종료연도":   9
+    "AI도메인":  28
+    "R&D단계":   14
+    "키워드":    20
+
+  number_formats:
+    "budget.2024_settlement":  "#,##0"
+    "budget.2025_original":    "#,##0"
+    "budget.2026_budget":      "#,##0"
+    "budget.change_amount":    "#,##0;(#,##0)"
+    "budget.change_rate":      "0.0;(0.0)"
+
+  conditional_formats:
+    "budget.change_rate":
+      positive: "C6EFCE"
+      negative: "FFC7CE"
+
+sheet_sub_projects:
+  name: "내역사업"
+  freeze_panes: "A3"
+  row_height: 18
+  header_row_height: 28
+  auto_filter: true
+
+  columns:
+    parent_department:  "부처명"
+    parent_code:        "상위사업코드"
+    parent_name:        "상위사업명"
+    name:               "내역사업명"
+    budget_2024:        "2024예산"    # years.sub_years[0]
+    budget_2025:        "2025예산"    # years.sub_years[1]
+    budget_2026:        "2026예산"    # years.sub_years[2]
+
+  column_widths:
+    "부처명":       14
+    "상위사업코드": 13
+    "상위사업명":   30
+    "내역사업명":   35
+    "2024예산":     12
+    "2025예산":     12
+    "2026예산":     12
+
+  number_formats:
+    budget_2024: "#,##0"
+    budget_2025: "#,##0"
+    budget_2026: "#,##0"
+
+sheet_history:
+  name: "사업연혁"
+  enabled: false    # true로 변경하면 연혁 시트 생성
+
+sheet_summary:
+  name: "요약"
+  enabled: true
+
+style:
+  font_name: "맑은 고딕"
+  font_size: 9
+  header_bg: "1F3864"
+  header_fg: "FFFFFF"
+  stripe_even: "F2F7FF"
+  stripe_odd:  "FFFFFF"
+  protect_sheets: true
+  protect_password: ""
