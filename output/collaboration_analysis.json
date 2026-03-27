@@ -1,13 +1,6 @@
 {
   "metadata": {
     "title": "규칙기반 자동생성 협업가능성 분석",
-<<<<<<< HEAD
-    "generated_at": "2026-03-27T18:12:34.229937",
-    "llm_enhanced": false,
-    "total_pairs_found": 0
-  },
-  "pairs": []
-=======
     "generated_at": "2026-03-26T15:48:08.477979",
     "llm_enhanced": false,
     "total_pairs_found": 196
@@ -6286,5 +6279,4 @@
       "recommendation": "두 부처 간 '수요-공급 매칭 협의체'를 구성하여, 정책적 인센티브 부여 및 공동 R&D/인력공급 과제를 우선순위로 추진해야 합니다."
     }
   ]
->>>>>>> 1e47dd652515c76fae9b5184000a23cefcaf5c56
 }
