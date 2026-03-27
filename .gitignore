@@ -19,6 +19,9 @@ temp/
 tmp/
 data_sample/
 fonts/
+output/
+input/
+
 
 # 설정 파일
 .vscode/

@@ -1,9 +1,5 @@
 years:
-<<<<<<< HEAD
   base_year: 2026
-=======
-  base_year: 2027
->>>>>>> 1e47dd652515c76fae9b5184000a23cefcaf5c56
 pipeline:
   run_mode: manual
   watch_interval: 3
