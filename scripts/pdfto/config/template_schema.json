@@ -1,0 +1,126 @@
+{
+  "metadata": {
+      "total_projects": 0,
+      "total_departments": 0,
+      "total_budget_2026": 0.0,
+      "total_budget_2025": 0.0,
+      "budget_change": 0.0,
+      "rnd_projects": 0,
+      "info_projects": 0,
+      "new_projects": 0,
+      "budget_mismatch_count": 0,
+      "extraction_date": "",
+      "source": "",
+      "filtered_department": "",
+      "project_count": 0,
+      "departments_count": 0,
+      "base_year": 2026
+    },
+
+  "projects": [
+    {
+      "id": "Integer: 시스템 자동 부여 순번",
+      "name": "String: 부처명_사업명 조합",
+      "project_name": "String: 원본 사업명",
+      "code": "String: 세부사업코드 (예: 1035-401)",
+      "department": "String: 소관 부처명",
+      "division": "String: 소관 실국(기관)",
+      "account_type": "String: 회계명 (일반회계, 기금 등)",
+      "field": "String: 분야 (기본값: 통신)",
+      "sector": "String: 부문 (기본값: 정보통신)",
+      "program": {
+        "code": "String: 프로그램 코드",
+        "name": "String: 프로그램 명칭"
+      },
+      "unit_project": {
+        "code": "String: 단위사업 코드",
+        "name": "String: 단위사업 명칭"
+      },
+      "detail_project": {
+        "code": "String: 세부사업 코드",
+        "name": "String: 세부사업 명칭"
+      },
+      "status": "String: 신규/계속/완료 중 택1",
+      "support_type": "String: 직접/출연/보조/융자/출자 중 택1",
+      "implementing_agency": "String: 주관 시행기관 (쉼표 연결)",
+      "subsidy_rate": "String: 국고보조율",
+      "loan_rate": "String: 융자율",
+      "project_managers": [
+        {
+          "sub_project": "String: 내역사업명",
+          "managing_dept": "String: 소관부처 상세",
+          "implementing_agency": "String: 실제 수행기관",
+          "manager": "Null",
+          "phone": "Null"
+        }
+      ],
+      "budget": {
+        "2024_settlement": "Float: 24년도 결산액",
+        "2025_original": "Float: 25년도 본예산",
+        "2025_supplementary": "Null",
+        "2026_request": "Float: 26년도 요구안",
+        "2026_budget": "Float: 26년도 확정 예산",
+        "change_amount": "Float: 증감액 (26년-25년)",
+        "change_rate": "Float: 증감률 (%)"
+      },
+      "project_period": {
+        "start_year": "Integer: 시작 연도",
+        "end_year": "Integer: 종료 연도",
+        "duration": "String: 총 사업기간 (예: 4년)",
+        "raw": "String: 원본 기간 텍스트"
+      },
+      "total_cost": {
+        "total": "Null",
+        "government": "Null",
+        "raw": "Null"
+      },
+      "sub_projects": [
+        {
+          "name": "String: 내역사업 명칭",
+          "budget_2024": "Float: 24년 금액",
+          "budget_2025": "Float: 25년 금액",
+          "budget_2026": "Float: 26년 금액"
+        }
+      ],
+      "purpose": "String: 사업목적 텍스트 블록",
+      "description": "String: 사업내용 텍스트 블록",
+      "legal_basis": "String: 법적근거 텍스트 블록",
+      "is_rnd": "Boolean: R&D 여부",
+      "is_informatization": "Boolean: 정보화 여부",
+      "keywords": "List: 키워드 배열 (기본 빈 배열)",
+      "page_start": "Null",
+      "page_end": "Null",
+      "kpi": "List: 성과지표 배열 (기본 빈 배열)",
+      "overview": {
+        "사업규모": "String: 규모 텍스트",
+        "사업수혜자": "String: 수혜자 텍스트",
+        "사업시행방법": "String: 시행방법 텍스트"
+      },
+      "budget_calculation": "List: 산출근거 (기본 빈 배열)",
+      "effectiveness": "String: 기대효과 텍스트 블록",
+      "execution_detail": {
+        "method": "String: 추진체계 텍스트",
+        "recipients": "String: 지원대상 텍스트",
+        "subsidy_rate_detail": "Null"
+      },
+      "yearly_budgets": {
+        "2026": "Float: 26년도 예산"
+      },
+      "history": "List: 연혁 (기본 빈 배열)",
+      "ai_domains": "List: AI 적용 분야 (기본 ['디지털전환(AX)'])"
+    }
+  ],
+
+
+  "analysis": {
+    "by_department": {},
+    "by_type": {},
+    "by_domain": {},
+    "top_increases": [],
+    "top_decreases": [],
+    "duplicates": [],
+    "duplicate_network": [],
+    "keyword_clusters": [],
+    "same_agency": []
+  }
+}

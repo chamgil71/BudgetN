@@ -1,0 +1,8 @@
+# PDF 텍스트 및 2D 테이블 구조 추출 엔진
+pdfplumber>=0.10.3
+
+# 데이터 스키마 검증 및 직렬화 (V2 문법 필수)
+pydantic>=2.0.0
+
+# YAML 파일 저장 지원 (PyYAML)
+PyYAML>=6.0.1

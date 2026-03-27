@@ -1,5 +1,5 @@
 years:
-  base_year: 2027
+  base_year: 2026
 pipeline:
   run_mode: manual
   watch_interval: 3
