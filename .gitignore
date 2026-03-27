@@ -51,3 +51,9 @@ storage/logs/*
 !storage/logs/.gitkeep
 
 .obsidian/workspace.json
+
+
+# Large Data Files
+web/data/budget_db.json
+scripts/pdfto/output/merged.json
+web/js/embedded-data.js
