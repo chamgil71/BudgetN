@@ -41,7 +41,7 @@ class JsonProcessor:
                     traverse(item, current_path)
 
         # 'project' 배열 내부를 기준으로 집계 시작
-        projects = self.data.get("project", [])
+        projects = self.data.get("projects", [])
         traverse(projects, "")
         
         print(f"\n📊 [트리 경로별 집계 결과 - {self.input_path}]")
@@ -80,7 +80,7 @@ class JsonProcessor:
                     traverse_and_clear(item, current_path)
 
         # 데이터 수정 (project 내부 타겟팅)
-        traverse_and_clear(self.data.get("project", []), "")
+        traverse_and_clear(self.data.get("projects", []), "")
         
         # 새로운 파일로 저장 (원본 보호)
         with open(output_path, 'w', encoding='utf-8') as f:

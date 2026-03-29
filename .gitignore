@@ -21,6 +21,7 @@ data_sample/
 fonts/
 output/
 input/
+database/
 
 
 # 설정 파일
@@ -48,15 +49,22 @@ storage/database/*.db-journal
 storage/cache/*
 storage/exports/*
 storage/logs/*
+database
 !storage/database/.gitkeep
 !storage/cache/.gitkeep
 !storage/exports/.gitkeep
 !storage/logs/.gitkeep
+!database/src/.gitkeep
+!database/raw/.gitkeep
+!database/tmp/.gitkeep
+!database/parse_result/.gitkeep
+!database/input/.gitkeep
+!database/output/.gitkeep
+!database/logs/.gitkeep
 
 .obsidian/workspace.json
 
 
 # Large Data Files
 web/data/budget_db.json
-scripts/pdfto/output/merged.json
 web/js/embedded-data.js

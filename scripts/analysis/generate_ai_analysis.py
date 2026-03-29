@@ -273,11 +273,7 @@ def generate_analysis():
     print(f"✅ collaboration_analysis.json 저장 완료 ({len(collab_pairs)}쌍)")
     
     print("\n🎉 모든 AI 분석 데이터가 갱신되었습니다!")
-<<<<<<< HEAD
     print("👉 브라우저에 반영하려면 다음 명령어를 실행하세요: python scripts/pipeline/rebuild_embedded.py")
-=======
-    print("👉 브라우저에 반영하려면 다음 명령어를 실행하세요: python scripts/rebuild_embedded.py")
->>>>>>> 1e47dd652515c76fae9b5184000a23cefcaf5c56
 
 if __name__ == "__main__":
     generate_analysis()
