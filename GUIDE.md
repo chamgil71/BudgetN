@@ -1,3 +1,127 @@
+# 6. 🌐 웹 작동방식, CSS 적용, 템플릿 활용, 검색/필터 개선 방안
+
+## 6.1 웹 작동방식 개요
+
+- **index.html**: 모든 UI의 진입점. `<script>`, `<link>`로 JS/CSS/데이터를 로드.
+- **js/**: 각 탭별/기능별 JS가 데이터(json) fetch, DOM 렌더링, 이벤트 처리 담당.
+- **css/**: 각 탭/기능별 스타일 분리. 공통(main.css, style.css) + 탭별(policy-cluster.css 등)로 세분화.
+- **data/**: 전처리된 json 데이터. JS에서 fetch하여 전역 변수(window.DATA 등)로 할당.
+- **template/**: 신규 데이터 입력/가공용 CSV 템플릿. 엑셀 등에서 신규 사업/서브사업 등록 시 참고.
+
+### 데이터 흐름
+1. index.html → app.js에서 budget_db.json 등 fetch → window.DATA 할당
+2. 각 탭 클릭 시 해당 JS(tabs/...)가 데이터 가공 후 DOM 렌더링
+3. CSS는 탭별/기능별로 자동 적용(아래 참고)
+
+## 6.2 CSS 파일 적용 방식
+
+- index.html의 `<link href="css/xxx.css" rel="stylesheet">`로 각 CSS가 전역 적용됨
+- 공통 스타일(main.css, style.css) + 탭별 세부 스타일(policy-cluster.css, cross-compare.css 등)로 분리
+- 탭별로 필요한 CSS만 분리 관리하므로, 유지보수/확장에 용이
+- 미사용 CSS는 삭제 가능(단, 탭 추가/변경 시 누락 주의)
+
+## 6.3 template 폴더 사용법
+
+- 신규 사업/서브사업 등록 시, template/projects_template.csv, sub_projects_template.csv 참고
+- 엑셀 등에서 해당 템플릿을 복사해 입력 후, 파이프라인(scripts/pipeline/convert.py 등)에서 자동 ingest
+- 템플릿 구조가 변경되면, 파이프라인 스크립트와 JS 데이터 파싱 로직도 함께 점검 필요
+
+## 6.4 전체검색/특정조건(implementing_agency) 온오프 버튼 구현 검토
+
+- **현황:**
+  - list-view.js 등에서 전체 사업 검색/필터링은 기본적으로 input(검색창)과 select(필터)로 구현됨
+  - 특정 조건(예: implementing_agency = "정보통신산업진흥원" 또는 "nipa")만 필터링하는 기능은 별도 버튼/토글로 구현되어 있지 않음
+
+- **구현 가능성:**
+  - JS(예: list-view.js, app.js)에서 필터 조건을 변수로 관리하고, 버튼 클릭 이벤트로 조건을 온/오프 가능
+  - 예시: [전체]↔[NIPA만] 토글 버튼 추가 → 클릭 시 window.DATA.projects를 조건부 필터링하여 렌더링
+  - UI: 버튼/스위치/체크박스 등으로 구현 가능(탭 상단, 필터바 등 위치 자유)
+
+- **개선/추가 방안:**
+  1. list-view.js(또는 해당 탭 JS)에 "NIPA 사업만 보기" 토글 버튼 추가
+  2. 버튼 클릭 시, implementing_agency가 "정보통신산업진흥원", "nipa"(대소문자 무관)인 데이터만 필터링
+  3. 전체/조건부 결과를 실시간으로 전환
+  4. 필요시, 다른 부처/기관명도 옵션화 가능
+
+---
+# 5. 🗂️ index.html 탭별 연계 JS 파일 구조표
+
+아래 표는 index.html 내 각 주요 탭(Overview, Department, Field, Duplicate, Projects 등)이 실제로 어떤 JS 파일(또는 TS 파일)과 연계되어 동작하는지 구조적으로 정리한 것입니다. 각 탭의 ID, 주요 기능, 연동 JS 파일, 데이터 의존성까지 한눈에 파악할 수 있습니다.
+
+| 탭명(한글)         | 탭 ID             | 주요 기능/역할                | 연계 JS 파일                | 주요 데이터 파일           |
+|--------------------|-------------------|-------------------------------|----------------------------|----------------------------|
+| 개요               | tab-overview      | KPI, 트리맵, 요약             | dashboard.js, app.js       | budget_db.json             |
+| 부처별             | tab-department    | 부처별 분석/트리맵            | tabs/department.js         | budget_db.json             |
+| 분야별             | tab-field         | 분야별 분석/트리맵            | tabs/field.js              | budget_db.json             |
+| 유사/중복성분석    | tab-duplicate     | 중복/유사도 카드, 차트        | tabs/duplicate.js          | similarity_analysis.json, budget_db.json |
+| 사업목록           | tab-projects      | 사업 리스트, 상세 모달         | list-view.js, app.js       | budget_db.json             |
+| 상세비교           | tab-cross-compare | 부처/사업 상세 비교           | cross-compare.js           | budget_db.json             |
+| 미래시뮬           | tab-future        | 예산 증감 시뮬레이션          | future-sim.js              | budget_db.json             |
+| 협업분석           | tab-policy        | 부처간 협업 적합도/랭킹       | policy-cluster.js          | collaboration_analysis.json|
+| 네트워크           | tab-ai-tech       | 기술·산업 분포망              | network-viz.js             | budget_db.json             |
+| 인사이트(챗봇)     | tab-insight       | 예산 인사이트 챗봇            | ai-insight.js              | (없음, UI 전용)            |
+
+> 참고: 실제로는 js/ 폴더 내 파일명은 .js이나, 타입스크립트 기반 프로젝트라면 .ts로 관리될 수 있습니다. (빌드시 .js로 변환)
+
+---
+# 4. 🗂️ `web/js` & `web/data` 파일별 연관관계 및 탭별 작동 현황 분석
+
+본 프로젝트의 웹서비스는 `web/data/` 폴더 내 **전처리 완료된 JSON 데이터**를 기반으로 각 탭별로 동작합니다. 아래 표는 **각 JS 파일(탭/기능별)**과 **data 폴더의 JSON 파일** 간의 1:1/1:N 연관관계를 정리한 것입니다. 또한, 실제 서비스 가능 여부와 데이터 의존성, 개선 필요점까지 세부적으로 분석합니다.
+
+| JS 파일명                | 주요 역할/탭                | 연관 데이터 파일           | 작동 조건/의존성         | 현재 서비스 가능성 | 개선/점검 필요사항 |
+|--------------------------|-----------------------------|----------------------------|--------------------------|-------------------|-------------------|
+| **app.js**               | 전체 앱 초기화, 전역 변수   | budget_db.json             | budget_db.json 필수      | O                 | -                 |
+| **dashboard.js**         | 개요(Overview) 탭 KPI/트리맵| budget_db.json             | budget_db.json           | O                 | -                 |
+| **list-view.js**         | 사업 목록(Projects) 탭      | budget_db.json             | budget_db.json           | O                 | -                 |
+| **cross-compare.js**     | 상세 비교(Cross-Compare)    | budget_db.json             | budget_db.json           | O                 | -                 |
+| **future-sim.js**        | 미래 예산 시뮬레이터        | budget_db.json             | budget_db.json           | O                 | -                 |
+| **duplicate-sim.js**     | 유사/중복성 분석(Duplicate) | similarity_analysis.json,  | similarity_analysis.json, | △ (데이터 없으면 X) | similarity_analysis.json 최신화 필요 |
+|                          |                             | budget_db.json             | budget_db.json           |                   |                   |
+| **policy-cluster.js**    | 협업분석(Policy Cluster)    | collaboration_analysis.json| collaboration_analysis.json| △ (데이터 없으면 X) | collaboration_analysis.json 최신화 필요 |
+| **network-viz.js**       | 기술·산업 분포망            | budget_db.json             | budget_db.json           | O                 | -                 |
+| **ai-insight.js**        | 예산 인사이트(챗봇)         | (없음, UI 전용)            | -                        | O                 | -                 |
+
+#### ▷ 데이터 파일별 상세 설명 및 JS 연관성
+
+- **budget_db.json**: 모든 주요 탭(개요, 목록, 비교, 시뮬, 네트워크 등)의 기본 데이터 소스. 이 파일이 없으면 대부분의 탭이 정상 작동 불가.
+- **similarity_analysis.json**: Duplicate(유사/중복성 분석) 탭의 핵심 데이터. 없거나 포맷이 맞지 않으면 해당 탭은 비활성/에러.
+- **collaboration_analysis.json**: Policy Cluster(협업분석) 탭의 핵심 데이터. 없으면 해당 탭은 비활성/에러.
+- **hybrid_similarity.json_backup**: 실험적/백업용. 직접적으로 UI에서 사용하지 않음(향후 확장 가능성).
+
+#### ▷ 탭별 작동/비작동 구분 및 점검 포인트
+
+1. **개요(Overview), 사업목록(Projects), 상세비교, 미래시뮬, 네트워크**
+  - **budget_db.json**만 있으면 정상 작동.
+  - 데이터 누락/포맷 오류시 전체 서비스 불가.
+
+2. **유사/중복성 분석(Duplicate)**
+  - **similarity_analysis.json**이 반드시 필요.
+  - budget_db.json과의 연계 필수(프로젝트 ID 등).
+  - 데이터가 없거나, 분석 스크립트 미실행/포맷 불일치시 탭이 비활성/에러.
+  - **점검:** scripts/analysis/generate_ai_analysis.py 재실행 필요 여부 확인.
+
+3. **협업분석(Policy Cluster)**
+  - **collaboration_analysis.json**이 반드시 필요.
+  - budget_db.json과의 연계 필수.
+  - 데이터가 없거나, 분석 스크립트 미실행/포맷 불일치시 탭이 비활성/에러.
+  - **점검:** scripts/analysis/generate_ai_analysis.py 재실행 필요 여부 확인.
+
+4. **기타/실험적 데이터**
+  - hybrid_similarity.json_backup 등은 현재 UI에서 직접 사용하지 않으나, 향후 확장/실험에 활용 가능.
+
+#### ▷ 서비스 가능/불가 항목 요약
+
+- **O(가능):** budget_db.json만 있으면 작동하는 탭(개요, 목록, 비교, 시뮬, 네트워크, 인사이트)
+- **△(조건부):** similarity_analysis.json, collaboration_analysis.json 등 추가 데이터 필요(유사/중복성, 협업분석)
+- **X(불가):** 필수 데이터가 없거나 포맷이 맞지 않을 때(탭 비활성/에러)
+
+#### ▷ 개선/점검 필요사항
+
+- 분석 데이터가 오래되었거나, 신규 사업/연도 반영이 안 된 경우 scripts/analysis/generate_ai_analysis.py를 반드시 재실행하여 최신화 필요
+- budget_db.json의 필드/ID가 변경되면 연관 분석 데이터도 반드시 동기화 필요
+- 데이터 포맷이 맞지 않거나, JS에서 요구하는 필드가 누락된 경우 UI가 정상 작동하지 않으므로, 데이터 구조 변경 시 JS 코드도 함께 점검
+
+---
 # 📘 KAIB2026 유지보수 종합 가이드라인 (Maintenance Guide)
 
 본 문서는 파이프라인 내부의 스크립트 도구들(`scripts/`)과 프론트엔드(`web/js/`) 파일들이 어떤 역할을 하며, 서로 어떤 DB 파일들(`data/*.json`)과 의존하고 있는지 철저히 해부한 운영자 전용 트러블슈팅 매뉴얼입니다.

@@ -1,0 +1,893 @@
+{
+  "projects": [
+    {
+      "id": "PRJ-F8A8E834",
+      "name": "과학기술정보통신부_4대지역외 AX 대전환 기획",
+      "project_name": "4대지역외 AX 대전환 기획",
+      "code": "4231-301",
+      "department": "과학기술정보통신부",
+      "division": null,
+      "account_type": "일반회계",
+      "field": "통신",
+      "sector": "정보통신",
+      "program": {
+        "code": "4200",
+        "name": "지역경제활성화"
+      },
+      "unit_project": {
+        "code": "4231",
+        "name": "광역경제권산업경쟁력강화"
+      },
+      "detail_project": {
+        "code": "301",
+        "name": "4대 지역외 AX 대전환 기획"
+      },
+      "status": "계속",
+      "support_type": "출연",
+      "implementing_agency": "정보통신산업진흥원",
+      "subsidy_rate": null,
+      "loan_rate": null,
+      "project_managers": [
+        {
+          "sub_project": "4대 지역외 AX 대전환 기획",
+          "managing_dept": "소프트웨어정책관",
+          "implementing_agency": "소프트웨어산업과",
+          "manager": null,
+          "phone": null
+        }
+      ],
+      "budget": {
+        "2025_settlement": null,
+        "2026_original": null,
+        "2026_supplementary": null,
+        "2027_request": 2500.0,
+        "2027_budget": 2500.0,
+        "change_amount": 2500.0,
+        "change_rate": null
+      },
+      "project_period": {
+        "start_year": 2026,
+        "end_year": 2026,
+        "duration": "1년",
+        "raw": "’26년"
+      },
+      "total_cost": {
+        "total": null,
+        "government": null,
+        "raw": null
+      },
+      "sub_projects": [
+        {
+          "name": "5극, 충남권 AX 대전환",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": 1000.0
+        },
+        {
+          "name": "3특, 강원권 등AX 대전환",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": 1500.0
+        }
+      ],
+      "purpose": "- (사업목적) 5극 3특 권역 중심으로 인공지능 기반의 산업 혁신과 지역 경쟁력 강화를\n위한 AX 대전환 실현을 통해 국가균형 발전 기틀 마련\n- (사업내용) 5극 3특 권역별* 특화 산업·기업 및 지역수요를분석하고, AX 대전환로드맵 수\n립, 투자계획 및 정책적·경제적·기술적 타당성 분석 등 사업 기획\n* 5극(충남권), 3특(강원 원주 등, 제주)",
+      "description": "- (사업목적) 5극 3특 권역 중심으로 인공지능 기반의 산업 혁신과 지역 경쟁력 강화를\n위한 AX 대전환 실현을 통해 국가균형 발전 기틀 마련\n- (사업내용) 5극 3특 권역별* 특화 산업·기업 및 지역수요를분석하고, AX 대전환로드맵 수\n립, 투자계획 및 정책적·경제적·기술적 타당성 분석 등 사업 기획\n* 5극(충남권), 3특(강원 원주 등, 제주)",
+      "legal_basis": "①법령상 근거 조항 적시\n- 소프트웨어 진흥법 제8조(소프트웨어산업 진흥 전담기관 등) ①과학기술정보통\n신부장관은 소프트웨어산업의 진흥ㆍ발전을 효율적으로 지원하기 위하여 「정\n- 260 -",
+      "is_rnd": false,
+      "is_informatization": false,
+      "keywords": [
+        "4대지역외",
+        "AX",
+        "대전환",
+        "기획"
+      ],
+      "page_start": 259,
+      "page_end": 264,
+      "kpi": [],
+      "overview": {
+        "사업규모": "- 총사업비(해당되는 경우에만 기재) : 해당없음",
+        "사업수혜자": "국내 ICT/AI 산학연, 지자체 등",
+        "사업시행방법": "출연"
+      },
+      "budget_calculation": [],
+      "effectiveness": "□사업영향, 산출물 성과지표 등\n①2022~2026년도 성과계획서 상 성과지표 및 최근 5년간 성과 달성도\n성과지표\n구분\n2022\n2023\n2024\n2025\n2026\n2026 목표치 \n산출근거\n측정산식\n(또는 측정방법)\n자료수집방법\n(또는 자료출처)\n권역별\nAX 대전환 \n프로젝트 기획\n(단위: 건)\n목표\n-\n-\n-\n-\n3\n3개 권역별\n(충남권, 강원권,\n제주권) 대형 \nAX 프로젝트\n추진을 위한\n사전 기획\n권역별 산업 \n수요, 경제성·\n정책성 등을 \n종합 분석한\n사업 기획 \n보고서 건수\n기획보고서 등\n실적\n-\n-\n-\n-\n-\n달성도\n-\n-\n-\n-\n-\n②성과지표 이외의 연도별 사업추진 경과 및 실적 : 해당없음\n③향후(2026년도 이후) 기대효과\nㅇ권역별 지역산업 특성에 기반한 맞춤형 AX 전환 전략 수립으로 타 권역과 차별화된 \n성장모델창출을 통해 5극 3특 지역균형성장 정책 실효성 제고",
+      "execution_detail": {
+        "method": null,
+        "recipients": null,
+        "subsidy_rate_detail": null
+      },
+      "yearly_budgets": {
+        "2026": 2500.0
+      },
+      "history": [],
+      "ai_domains": [
+        "디지털전환(AX)"
+      ]
+    },
+    {
+      "id": "PRJ-3DDD7E8F",
+      "name": "과학기술정보통신부_AGI 준비 프로젝트",
+      "project_name": "AGI 준비 프로젝트",
+      "code": "2602-365",
+      "department": "과학기술정보통신부",
+      "division": "인공지능정책기확관",
+      "account_type": "일반회계",
+      "field": "통신",
+      "sector": "정보통신",
+      "program": {
+        "code": "2600",
+        "name": "인공지능데이터진흥"
+      },
+      "unit_project": {
+        "code": "2602",
+        "name": "AI경쟁력강화"
+      },
+      "detail_project": {
+        "code": "365",
+        "name": "AGI 준비 프로젝트"
+      },
+      "status": "계속",
+      "support_type": "출자",
+      "implementing_agency": "한국산업은행 경유출자 등을 통해 차세대 AI 연구조직 초기 투자",
+      "subsidy_rate": null,
+      "loan_rate": null,
+      "project_managers": [
+        {
+          "sub_project": "AGI 준비 프로젝트",
+          "managing_dept": "인공지능정책실",
+          "implementing_agency": "인공지능정책기획관",
+          "manager": null,
+          "phone": null
+        }
+      ],
+      "budget": {
+        "2025_settlement": null,
+        "2026_original": null,
+        "2026_supplementary": null,
+        "2027_request": 20000.0,
+        "2027_budget": 20000.0,
+        "change_amount": null,
+        "change_rate": null
+      },
+      "project_period": {
+        "start_year": 2026,
+        "end_year": 2026,
+        "duration": "1년",
+        "raw": "‘26"
+      },
+      "total_cost": {
+        "total": null,
+        "government": null,
+        "raw": null
+      },
+      "sub_projects": [
+        {
+          "name": "AGI 준비 프로젝트",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": 20000.0
+        }
+      ],
+      "purpose": "- (AGI 준비 프로젝트) 최적의 차세대 AI 연구조직 설립 방안 기획·도출하여, 민·관 협력 투자 \n방식의 차세대 AI 연구조직 설립이 적합할 경우에 한하여, 연구조직 설립 기반 초기 투자 추진\n․ AGI 기술선점의 중요성·시급성을 감안하여, 기획 내용 등에 근거한 속도감 있는 \n차세대 AI 연구조직 출범을 위해 관련 예산(안) 마련·요구  \n- 266 -",
+      "description": "- (AGI 준비 프로젝트) 최적의 차세대 AI 연구조직 설립 방안 기획·도출하여, 민·관 협력 투자 \n방식의 차세대 AI 연구조직 설립이 적합할 경우에 한하여, 연구조직 설립 기반 초기 투자 추진\n․ AGI 기술선점의 중요성·시급성을 감안하여, 기획 내용 등에 근거한 속도감 있는 \n차세대 AI 연구조직 출범을 위해 관련 예산(안) 마련·요구  \n- 266",
+      "legal_basis": "①법령상 근거 및 조항 적시\n- 인공지능 발전과 신뢰 기반 조성 등에 관한 기본법 제13조(인공지능 기술개발 \n및 안전한 이용 지원)\n제13조(인공지능 기술개발 및 안전한 이용 지원) ①정부는 인공지능기술 개발 \n활성화를 위하여 다음 각 호의 사업을 지원할 수 있다.\n1. 국내외 인공지능기술 동향ㆍ수준 및 관련 제도의 조사\n2. 인공지능기술의 연구ㆍ개발, 시험 및 평가 또는 개발된 기술의 활용\n3. 인공지능기술 확산, 인공지능기술 협력ㆍ이전 등 기술의 실용화 및 사업화 지원\n4. 인공지능기술의 구현을 위한 정보의 원활한 유통 및 산학협력\n5. 그 밖에 인공지능기술의 개발 및 연구ㆍ조사와 관련하여 대통령령으로 정하는 사업\n- 과학기술 기본법 제15조(기초연구의 진흥)\n제15조(기초연구의 진흥) 정부는 과학기술혁신의 바탕이 되는 기초연구를 진흥시키기\n위하여 대학과 정부가 출연하는 연구기관의 연구 및 상호 연계ㆍ협력을 활성화하고\n안정적인 연구비를 지원하는 등 종합적인 시책을 세우고 추진하",
+      "is_rnd": false,
+      "is_informatization": false,
+      "keywords": [
+        "AGI",
+        "준비",
+        "프로젝트"
+      ],
+      "page_start": 265,
+      "page_end": 271,
+      "kpi": [],
+      "overview": {
+        "사업규모": "- 총사업비 : 해당없음",
+        "사업수혜자": "기업, 대학, 연구소 등",
+        "사업시행방법": "출자"
+      },
+      "budget_calculation": [],
+      "effectiveness": "□사업영향, 산출물 성과지표 등\n①2022~2026년도 성과계획서 상 성과지표 및 최근 5년간 성과 달성도\n성과지표\n구분\n2022\n2023\n2024\n2025\n2026\n2026 목표치 \n산출근거\n측정산식\n(또는 측정방법)\n자료수집방법\n(또는 자료출처)\n최적의 차세대 \nAI 연구조직 \n설립 방안 \n기획·도출 여부\n(달성여부, 100%)\n목표\n-\n-\n-\n-\n100\n26년 단년도 \n사업으로\n최적의 차세대 \nAI 연구조직 \n설립 방안 도출을 \n목표로 함 \n기획보고서 기반 \n차세대 AI\n연구조직 설립 \n방안 도출\n기획보고서 기반 \n차세대 AI\n연구조직 설립 \n방안 도출\n실적\n-\n-\n-\n-\n-\n달성도\n-\n-\n-\n-\n-\n※ 초기 투자 방식의 출자금 지원 단년도 사업으로 사업 시작년차에 변동가능\n②성과지표 이외의 연도별 사업추진 경과 및 실적 : 해당없음\n③향후(2026년도 이후) 기대효과\n- 세계적 수준의 국내 연구진 역량을 집약하여, 혁신적 AI 연구에 과감히 도전, 실질 \n성과를 낼 수 있는 ",
+      "execution_detail": {
+        "method": null,
+        "recipients": null,
+        "subsidy_rate_detail": null
+      },
+      "yearly_budgets": {
+        "2026": 20000.0
+      },
+      "history": [],
+      "ai_domains": [
+        "LLM/언어모델"
+      ],
+      "ai_tech": [
+        "AGI/Agent"
+      ]
+    },
+    {
+      "id": "PRJ-8183FF76",
+      "name": "과학기술정보통신부_AI AGENT 선도 국가 사업",
+      "project_name": "AI AGENT 선도 국가 사업",
+      "code": "2602-367",
+      "department": "과학기술정보통신부",
+      "division": "인공지능정책기확관",
+      "account_type": "일반회계",
+      "field": "통신",
+      "sector": "정보통신",
+      "program": {
+        "code": "2600",
+        "name": "인공지능데이터진흥"
+      },
+      "unit_project": {
+        "code": "2602",
+        "name": "AI경쟁력강화"
+      },
+      "detail_project": {
+        "code": "367",
+        "name": "AI AGENT 선도 국가 사업"
+      },
+      "status": "계속",
+      "support_type": "출연",
+      "implementing_agency": "한국지능정보사회진흥원",
+      "subsidy_rate": null,
+      "loan_rate": null,
+      "project_managers": [
+        {
+          "sub_project": "AI AGENT 인프라 및 생태계 조성",
+          "managing_dept": "인공지능정책실",
+          "implementing_agency": "인공지능정책기획관",
+          "manager": null,
+          "phone": null
+        },
+        {
+          "sub_project": "AI AGENT 융합･확산 지원",
+          "managing_dept": "인공지능정책실",
+          "implementing_agency": "인공지능정책기획관",
+          "manager": null,
+          "phone": null
+        }
+      ],
+      "budget": {
+        "2025_settlement": null,
+        "2026_original": null,
+        "2026_supplementary": null,
+        "2027_request": 20000.0,
+        "2027_budget": 20000.0,
+        "change_amount": null,
+        "change_rate": null
+      },
+      "project_period": {
+        "start_year": 2026,
+        "end_year": 2030,
+        "duration": "5년",
+        "raw": "’26년~’30년"
+      },
+      "total_cost": {
+        "total": null,
+        "government": null,
+        "raw": null
+      },
+      "sub_projects": [
+        {
+          "name": "AI AGENT 인프라및 생태계 조성",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": 10000.0
+        },
+        {
+          "name": "AI AGENT 융합･확산 지원",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": 10000.0
+        }
+      ],
+      "purpose": "- (AI AGENT 선도 국가 사업) AI 에이전트가 필요한 도구를 자율적으로 실행할 수 \n있는 기술 인프라 기반을 마련하고, 서비스 실증을 통해 AI 에이전트 생태계 조성\n‧ (AI AGENT 인프라 및 생태계 조성) AI 에이전트 실행에 필요한 도구를 수요 기반으로 \n개발, 보안·신뢰 기반으로 개방·유통하여 AI 에이전트 실행 인프라 기반 조성\n‧ (AI AGENT 융합･확산 지원) 개발 역량을 보유한 중소기업 등을 대상으로 \n산업/현장의 필요에 따른 맞춤형 AI 에이전트 서비스 개발･실증 지원\n- 273 -",
+      "description": "- (AI AGENT 선도 국가 사업) AI 에이전트가 필요한 도구를 자율적으로 실행할 수 \n있는 기술 인프라 기반을 마련하고, 서비스 실증을 통해 AI 에이전트 생태계 조성\n‧ (AI AGENT 인프라 및 생태계 조성) AI 에이전트 실행에 필요한 도구를 수요 기반으로 \n개발, 보안·신뢰 기반으로 개방·유통하여 AI 에이전트 실행 인프라 기반 조성\n‧ (",
+      "legal_basis": "①법령상 근거 및 조항 적시\nㅇ (지능정보화기본법) 제14조(공공지능정보화의 추진), 제16조(민간 분야 지능정보화의 지원), 제17조(민간\n기관 등과의 협력), 제18조(지능정보화의 민간 확산), 제32조(선도사업의 추진과 지원)\n제12조(한국지능정보사회진흥원의 설립) ① 과학기술정보통신부장관과 행정안전부장관은 지능정보사회 관련 정\n책의 개발과 국가기관등의 지능정보사회 시책 및 지능정보화 사업의 추진 등을 지원하기 위하여 한국지능정\n보사회진흥원(이하 “지능정보사회원”이라 한다)을 설립한다.(이하 생략)\n제14조(공공지능정보화의 추진) ① 국가기관등은 공공서비스의 지능정보화를 도모하고 국민 편익 증진 등을 위\n하여 행정, 보건, 사회복지, 교육, 문화, 환경, 교통, 물류, 과학기술, 재난안전, 치안, 국방, 에너지 등 소관 업무에 \n대한 지능정보화(이하 “공공지능정보화”라 한다)를 추진하여야 한다.\n제16조(민간 분야 지능정보화의 지원) ① 정부는 산업ㆍ금융ㆍ의료 등 민간 분야의 ",
+      "is_rnd": false,
+      "is_informatization": false,
+      "keywords": [
+        "AI",
+        "AGENT",
+        "선도",
+        "국가",
+        "사업"
+      ],
+      "page_start": 272,
+      "page_end": 278,
+      "kpi": [
+        {
+          "name": "AI AGENT 개발·실증 사업화 성과 (단위: %)",
+          "weight": null,
+          "targets": {
+            "2026": "25"
+          },
+          "actuals": {},
+          "measurement_method": "사업화 및 기술개발 성공 과제 수/총 지원과제수",
+          "data_source": "사업 결과보고서 등"
+        }
+      ],
+      "overview": {},
+      "budget_calculation": [],
+      "effectiveness": "□사업영향, 산출물 성과지표 등\n①2022~2026년도 성과계획서 상 성과지표 및 최근 5년간 성과 달성도\n성과지표\n구분\n2022\n2023\n2024\n2025\n2026\n2026 목표치 \n산출근거\n측정산식\n(또는 측정방법)\n자료수집방법\n(또는 자료출처)\n유통체계 \nAI AGENT\n서비스 등록 건수\n(단위: 건)\n목표\n-\n-\n-\n-\n8\n신규 지표임을\n고려하여 \n목표치 설정\n유통체계\n(유통마켓)에 \n등록된 AI 에이전트 \n서비스 건수\n사업 \n결과보고서 등 \n실적\n-\n-\n-\n-\n-\n달성도\n-\n-\n-\n-\n-\nAI AGENT\n개발·실증 \n사업화 성과 \n(단위: %)\n목표\n-\n-\n-\n-\n25\n신규 지표임을 \n고려하여 \n목표치 설정\n사업화 및 \n기술개발 성공 \n과제 수/총 \n지원과제수\n사업 \n결과보고서 등 \n실적\n-\n-\n-\n-\n-\n달성도\n-\n-\n-\n-\n-\n②성과지표 이외의 연도별 사업추진 경과 및 실적 : 해당없음\n③향후(2026년도 이후) 기대효과\n- AI 에이전트 실행에 필요한 AI 에이전트 유",
+      "execution_detail": {
+        "method": null,
+        "recipients": null,
+        "subsidy_rate_detail": null
+      },
+      "yearly_budgets": {
+        "2026": 20000.0
+      },
+      "history": [],
+      "ai_domains": [
+        "LLM/언어모델"
+      ],
+      "ai_tech": [
+        "AGI/Agent"
+      ],
+      "rnd_stage": [
+        "실증/시범"
+      ]
+    },
+    {
+      "id": "PRJ-80DCBACE",
+      "name": "과학기술정보통신부_AI 공간 컴퓨팅 창업 생태계 활성화",
+      "project_name": "AI 공간 컴퓨팅 창업 생태계 활성화",
+      "code": "2602-366",
+      "department": "과학기술정보통신부",
+      "division": "소프트웨어정책관",
+      "account_type": "일반회계",
+      "field": "통신",
+      "sector": "정보통신",
+      "program": {
+        "code": "2600",
+        "name": "인공지능데이터진흥"
+      },
+      "unit_project": {
+        "code": "2602",
+        "name": "AI경쟁력강화(일반)"
+      },
+      "detail_project": {
+        "code": "366",
+        "name": "AI·공간컴퓨팅 창업 생태계 활성화"
+      },
+      "status": "계속",
+      "support_type": "출연",
+      "implementing_agency": "정보통신산업진흥원",
+      "subsidy_rate": null,
+      "loan_rate": null,
+      "project_managers": [
+        {
+          "sub_project": "AI·공간컴퓨팅 창업 생태계 활성화",
+          "managing_dept": "정보통신정책실",
+          "implementing_agency": "소프트웨어정책관",
+          "manager": null,
+          "phone": null
+        }
+      ],
+      "budget": {
+        "2025_settlement": null,
+        "2026_original": null,
+        "2026_supplementary": null,
+        "2027_request": 1500.0,
+        "2027_budget": 1500.0,
+        "change_amount": 1500.0,
+        "change_rate": null
+      },
+      "project_period": {
+        "start_year": 2026,
+        "end_year": null,
+        "duration": "계속",
+        "raw": "’26년 ~ 계속"
+      },
+      "total_cost": {
+        "total": null,
+        "government": null,
+        "raw": null
+      },
+      "sub_projects": [
+        {
+          "name": "로봇 기반 공간컴퓨팅 창업지원",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": 1500.0
+        }
+      ],
+      "purpose": "□(AI·공간컴퓨팅 창업 생태계 활성화) AI·공간컴퓨팅 산업의 기술창업 도전 활성화와 초기\n창업기업의 안정적 성장 지원을 통한 기술집약 산업의 지속 가능한 기술창업 생태계 조성\n- (로봇 기반 공간컴퓨팅 창업지원) 예비·초기 창업기업 대상 로봇 기반 신서비스 발굴 및 \n맞춤형 프로그램 운영을 통한 지역 창업 생태계 활성화",
+      "description": "□(AI·공간컴퓨팅 창업 생태계 활성화) AI·공간컴퓨팅 산업의 기술창업 도전 활성화와 초기\n창업기업의 안정적 성장 지원을 통한 기술집약 산업의 지속 가능한 기술창업 생태계 조성\n- (로봇 기반 공간컴퓨팅 창업지원) 예비·초기 창업기업 대상 로봇 기반 신서비스 발굴 및 \n맞춤형 프로그램 운영을 통한 지역 창업 생태계 활성화",
+      "legal_basis": "①법령상 근거 및 조항 적시\n- 「정보통신 진흥 및 융합 활성화 등에 관한 특별법」제21조, 제32조\n제21조(디지털콘텐츠의 진흥과 활성화) ① 정부는 디지털콘텐츠 제작자의 창의성을 높이고, 유망 \n디지털콘텐츠가 창작ㆍ유통ㆍ이용될 수 있는 환경을 조성하여야 하며, 관련 산업의 경쟁력을 강화\n하기 위하여 노력하여야 한다.\n② 정부는 디지털콘텐츠의 진흥 및 활성화를 위하여 다음 각 호의 사업을 추진할 수 있다.\n1. 디지털콘텐츠의 제작 및 유통 지원\n2. 디지털콘텐츠 관련 지역협력 및 시범사업\n3. 디지털콘텐츠 인프라 구축 지원\n4. 디지털콘텐츠 관련 전문인력 양성 지원\n5. 디지털콘텐츠 진흥 및 활성화를 위한 정책연구 사업\n6. 그 밖에 디지털콘텐츠 진흥 및 활성화를 위하여 대통령령으로 정하는 사항\n③ 정부는 제2항 각 호의 사업을 효율적으로 추진하기 위하여 전담기관을 지정할 수 있으며, 필요\n한 비용의 전부 또는 일부를 보조할 수 있다.\n④ 제2항에 따른 지원 사업 및 제3항에 따른",
+      "is_rnd": false,
+      "is_informatization": false,
+      "keywords": [
+        "AI",
+        "공간",
+        "컴퓨팅",
+        "창업",
+        "생태계",
+        "활성화"
+      ],
+      "page_start": 279,
+      "page_end": 286,
+      "kpi": [
+        {
+          "name": "창업 건수 (단위: 건)",
+          "weight": null,
+          "targets": {
+            "2026": "3"
+          },
+          "actuals": {},
+          "measurement_method": "창업 발생 건수",
+          "data_source": "결과보고서"
+        }
+      ],
+      "overview": {
+        "사업규모": "- 총사업비(해당되는 경우에만 기재) : 해당없음",
+        "사업수혜자": "AI·공간컴퓨팅 산업 분야 초기 창업 기업 및 구직자, 일반국민 등",
+        "사업시행방법": "출연"
+      },
+      "budget_calculation": [],
+      "effectiveness": "□사업영향, 산출물 성과지표 등\n①2022~2026년도 성과계획서 상 성과지표 및 최근 5년간 성과 달성도\n성과지표\n구분\n2022\n2023\n2024\n2025\n2026\n2026 목표치 \n산출근거\n측정산식\n(또는 측정방법)\n자료수집방법\n(또는 자료출처)\n콘텐츠·서비스 \n상용화 건수\n(단위: 건)\n목표\n-\n-\n-\n-\n6\n초기 창업 \n기업 수를 \n고려하여 산정\n당해연도 \n개발완료 및 \n매출발생\n결과보고서\n실적\n-\n-\n-\n-\n달성도\n-\n-\n-\n-\n창업 건수\n(단위: 건)\n목표\n-\n-\n-\n-\n3\n예비창업 \n프로그램 \n수료팀 수를 \n고려하여 산정\n창업 발생 \n건수\n결과보고서\n실적\n-\n-\n-\n-\n달성도\n-\n-\n-\n-\n②성과지표 이외의 연도별 사업추진 경과 및 실적: 해당없음\n③향후(2026년도 이후) 기대효과 \n- AI·공간컴퓨팅 스타트업 육성을 통해 IT, 콘텐츠, 서비스 등 다양한 분야의 취업 \n확대 및 고용창출에 기여\n- 초기 창업기업의 투자 유치 및 민간 벤처캐피털 참여 확대를 기반으로 민",
+      "execution_detail": {
+        "method": null,
+        "recipients": null,
+        "subsidy_rate_detail": null
+      },
+      "yearly_budgets": {
+        "2026": 1500.0
+      },
+      "history": [],
+      "ai_domains": [
+        "로봇"
+      ]
+    },
+    {
+      "id": "PRJ-8B1B7E86",
+      "name": "과학기술정보통신부_AI 기반 뇌발달질환 디지털의료기기 실증지원",
+      "project_name": "AI 기반 뇌발달질환 디지털의료기기 실증지원",
+      "code": "2601-405",
+      "department": "과학기술정보통신부",
+      "division": "인공지능정책기획관",
+      "account_type": "지역균형발전 특별회계",
+      "field": "통신",
+      "sector": "정보통신",
+      "program": {
+        "code": "2600",
+        "name": "인공지능데이터진흥"
+      },
+      "unit_project": {
+        "code": "2601",
+        "name": "AI기술개발(지특)"
+      },
+      "detail_project": {
+        "code": "405",
+        "name": "AI 기반 뇌발달질환 디지털의료기기 실증지원"
+      },
+      "status": "계속",
+      "support_type": "출연",
+      "implementing_agency": "정보통신산업진흥원",
+      "subsidy_rate": "100",
+      "loan_rate": null,
+      "project_managers": [
+        {
+          "sub_project": "AI 기반 뇌발달질환 디지털의료기 기 실증지원",
+          "managing_dept": "인공지능정책실",
+          "implementing_agency": "인공지능정책기획관",
+          "manager": null,
+          "phone": null
+        }
+      ],
+      "budget": {
+        "2025_settlement": 5000.0,
+        "2026_original": 5000.0,
+        "2026_supplementary": 5000.0,
+        "2027_request": 5000.0,
+        "2027_budget": 5000.0,
+        "change_amount": 0.0,
+        "change_rate": 0.0
+      },
+      "project_period": {
+        "start_year": 2024,
+        "end_year": 2026,
+        "duration": "3년",
+        "raw": "’24 ~ ‘26(3년)"
+      },
+      "total_cost": {
+        "total": null,
+        "government": null,
+        "raw": null
+      },
+      "sub_projects": [
+        {
+          "name": "AI기반 뇌발달질환디지털의료기기 실증지원",
+          "budget_2024": 5000.0,
+          "budget_2025": 5000.0,
+          "budget_2026": 5000.0
+        }
+      ],
+      "purpose": "◦(AI 기반 뇌발달질환 디지털의료기기 실증지원) 지역 의료기기 제조기업 기술\n지원을 통한 디지털 치료기기 산업 생태계 저변확대 및 활성화\n- (디지털치료기기 개발지원) 산-학-연-병 기반 뇌발달질환 관련 성과물 중에서 예방·\n치료 분야 디지털 치료기기 사업화 및 고도화 연구 및 제품개발 및 성능 검증\n- (실증지원) 협력병원 연계를 통한 디지털치료기기 제품 집중 실증지원/디지털 치료\n기기 성능 테스트 및 인허가 컨설팅 지원\n- (성과확산) 디지털 치료기기 인허가 완료, 준비중인 제품 시범서비스 운영 \n2024\n2025\n2026\n예산\n예산액\n(추경)\n예산\n현액집행액이월액불용액예산액\n(추경)\n예산\n현액\n집행액\n이월\n액\n불용\n액\n○기능별 분류(합계)\n5,000\n5,000\n5,000\n[4,988]\n5,000\n5,000\n5,000\n[4,980]\n-\n-\n5,000\n․AI기반 뇌발달질환\n디지털의료기기 \n실증지원\n5,000\n5,000\n5,000\n[4,988]\n5,000\n5,000\n5,000\n[4,980]\n-\n-\n5,000\n- 288 -",
+      "description": "◦(AI 기반 뇌발달질환 디지털의료기기 실증지원) 지역 의료기기 제조기업 기술\n지원을 통한 디지털 치료기기 산업 생태계 저변확대 및 활성화\n- (디지털치료기기 개발지원) 산-학-연-병 기반 뇌발달질환 관련 성과물 중에서 예방·\n치료 분야 디지털 치료기기 사업화 및 고도화 연구 및 제품개발 및 성능 검증\n- (실증지원) 협력병원 연계를 통한 디지털치료기기 제",
+      "legal_basis": "①법령상 근거 조항 적시 \n- 정보통신 진흥 및 융합 활성화 등에 관한 특별법 제32조(정보통신융합등 기술·서\n비스 개발 등의 지원)\n- 정보통신산업진흥법 제3조(국가 및 지방자치단체의 책무)\n①국가는 정보통신산업의 진흥에 필요한 종합적인 시책을 수립하여 시행하고 이에 필요한 재원확보 방안을마련하여\n야 한다.\n②지방자치단체는 국가의 시책과 지역적 특성을 고려하여 정보통신기술을 기반으로 정보통신산업의 \n진흥에필요한 시책을 마련하여야 한다.\n- 정보통신산업진흥법 제27조(사업)\n①과학기술정보통신부장관은 다른 산업 및 서비스 등에 정보통신의 접목을 통하여 생산성과 가치를 높\n일 수있도록 노력하여야 한다.\n②과학기술정보통신부장관은 정보통신융합등 기술ㆍ서비스의 개발을 촉진하기 위하여 다음 각 호의 \n사업을추진할 수 있다.\n1. 정보통신융합등 기술ㆍ서비스 관련 연구개발 사업\n2. 제1호에 따라 추진되는 과제에 대한 기획ㆍ평가ㆍ관리\n3. 국가ㆍ지방자치단체, 대학ㆍ정부출연연구기관, 민간 등이 보유",
+      "is_rnd": false,
+      "is_informatization": false,
+      "keywords": [
+        "AI",
+        "기반",
+        "뇌발달질환",
+        "디지털의료기기",
+        "실증지원"
+      ],
+      "page_start": 287,
+      "page_end": 294,
+      "kpi": [
+        {
+          "name": "디지털의료기기 상용화 비율 (단위: %)",
+          "weight": null,
+          "targets": {
+            "2024": "40",
+            "2025": "50",
+            "2026": "60"
+          },
+          "actuals": {
+            "2024": "50",
+            "2025": "55"
+          },
+          "measurement_method": "상용화 과제* / 당해연도 과제수 × 100 (임상 승인/인허가 신청완료)",
+          "data_source": "사업계획서 및 결과보고서"
+        }
+      ],
+      "overview": {},
+      "budget_calculation": [],
+      "effectiveness": "□사업영향, 산출물 성과지표 등\n①2022~2026년도 성과계획서상 성과지표 및 최근 5년간 성과 달성도\n성과지표\n구분\n2022\n2023\n2024\n2025\n2026\n2026목표치 \n산출근거\n측정산식\n(또는 측정방법)\n자료수집방법\n(또는 자료출처)\n수혜기업 만족도\n(단위 : 점)\n목표\n-\n-\n80\n82\n84\n만족(80점) 이상을 \n목표치로 설정\n수혜기업 대상\n만족도 조사\n설문조사 및 \n결과보고서\n실적\n-\n-\n85.8\n87.6\n-\n달성도\n-\n-\n107% 107%\n-\n디지털의료기기\n상용화 비율\n(단위: %)\n목표\n-\n-\n40\n50\n60\n11개 과제 중 \n7개 이상을 \n식약처 인증절차를 \n목표치로 설정\n상용화 과제* / \n당해연도 과제수 × 100\n(임상 승인/인허가 \n신청완료)\n사업계획서 및 \n결과보고서\n실적\n-\n-\n50\n55\n-\n달성도\n-\n-\n125% 110%\n-\n②성과지표 이외의 연도별 사업추진 경과 및 실적\nAI기반 뇌발달질환 디지털의료기기 실증지원 5,000백만원\n① 디지털치료기기",
+      "execution_detail": {
+        "method": null,
+        "recipients": null,
+        "subsidy_rate_detail": null
+      },
+      "yearly_budgets": {
+        "2024": 5000.0,
+        "2025": 5000.0,
+        "2026": 5000.0
+      },
+      "history": [
+        {
+          "year": 2022,
+          "description": "해당없음"
+        },
+        {
+          "year": 2023,
+          "description": "해당없음"
+        },
+        {
+          "year": 2024,
+          "description": "- 총괄사업수행기관(주관기관) 공모 및 선정(5월) * 대구 디지털혁신진흥원 선정 - AI기반 뇌질환 디지털의료기기 개발지원(5개사) 및 실증지원(5개사), 시범사업(2 개) 선정"
+        },
+        {
+          "year": 2025,
+          "description": "- AI기반 뇌질환 디지털의료기기 개발지원 및 실증지원(10개사), 지역병원기반 뇌질 환 클러스터 운영 및 성과확산(2개질환), 뇌분야 전문 연구기관을 통한 기업 밀 착 기술지원 등"
+        }
+      ],
+      "ai_domains": [
+        "의료/바이오"
+      ],
+      "ai_tech": [
+        "신약/의료AI"
+      ],
+      "rnd_stage": [
+        "실증/시범"
+      ]
+    },
+    {
+      "id": "PRJ-E0DC8917",
+      "name": "과학기술정보통신부_AI 기반 민군 유·무인복합체계 주파수 공동사용 및 운용 기술 개발",
+      "project_name": "AI 기반 민군 유·무인복합체계 주파수 공동사용 및 운용 기술 개발",
+      "code": "1632-311",
+      "department": "과학기술정보통신부",
+      "division": "전파정책국",
+      "account_type": "일반회계",
+      "field": "문화 및 관광",
+      "sector": "문화예술",
+      "program": {
+        "code": "1600",
+        "name": "정보통신방송기반조성"
+      },
+      "unit_project": {
+        "code": "1632",
+        "name": "전파방송산업활성화"
+      },
+      "detail_project": {
+        "code": "311",
+        "name": "AI 기반 민군 유·무인복합체계 주파수 공동사용 및 운용 기술 개발"
+      },
+      "status": "계속",
+      "support_type": "출연",
+      "implementing_agency": "정보통신기획평가원",
+      "subsidy_rate": "100",
+      "loan_rate": null,
+      "project_managers": [
+        {
+          "sub_project": "AI 기반 민군 유·무인복합 체계 주파수 공동사용 및 운용 기술 개발",
+          "managing_dept": "전파정책국 주파수정책과",
+          "implementing_agency": "정보통신기획평가원",
+          "manager": null,
+          "phone": null
+        }
+      ],
+      "budget": {
+        "2025_settlement": null,
+        "2026_original": null,
+        "2026_supplementary": null,
+        "2027_request": 2800.0,
+        "2027_budget": 2800.0,
+        "change_amount": 2800.0,
+        "change_rate": null
+      },
+      "project_period": {
+        "start_year": 2026,
+        "end_year": 2030,
+        "duration": "5년",
+        "raw": "’26~‘30년(5년)"
+      },
+      "total_cost": {
+        "total": null,
+        "government": null,
+        "raw": null
+      },
+      "sub_projects": [
+        {
+          "name": "AI기반 민군 유·무인복합체계 주파수 공동사용 및 운용 기술 개발",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": 2800.0
+        }
+      ],
+      "purpose": "- (AI 기반 민군 유·무인복합체계 주파수 공동사용 및 운용 기술 개발) 유·무인복합\n체계 수요 급증 및 주파수 부족 심화에 대응하여, 주파수 이용효율 극대화를 위한 \nAI 기반 민·군 주파수 공동사용 및 운용 기술 확보",
+      "description": "- (AI 기반 민군 유·무인복합체계 주파수 공동사용 및 운용 기술 개발) 유·무인복합\n체계 수요 급증 및 주파수 부족 심화에 대응하여, 주파수 이용효율 극대화를 위한 \nAI 기반 민·군 주파수 공동사용 및 운용 기술 확보",
+      "legal_basis": "①법령상 근거 및 조항 적시 : 전파법 제3조(전파자원의 이용촉진), 제5조(전파자원의 확보),\n- 296 -\n\n제6조(전파자원 이용효율의 개선), 제6조의3(주파수 공동사용), 제62조(기술개발의 촉진) 등\n  - 제3조(전파자원의 이용촉진) 정부는 한정된 전파자원(電波資源)을 공공복리의 증진\n에 최대한 활용하기 위하여 전파자원의 이용촉진에 필요한 시책을 마련하고 시행하여야 \n한다.\n  - 제5조(전파자원의 확보) ① 과학기술정보통신부장관은 전파자원을 확보하기 위하\n여 다음 각 호의 시책을 마련하고 시행하여야 하며, 그 시행에 필요한 지원방안을 \n마련하여야 한다. \n    1. 새로운 주파수의 이용기술 개발\n    2. 이용 중인 주파수의 이용효율 향상\n    2의2. 주파수 공동사용기술 개발 … (중략)…\n  - 제6조(전파자원 이용효율의 개선) ① 과학기술정보통신부장관은 전파자원의 공\n평하고 효율적인 이용을 촉진하기 위하여 필요하면 다음 각 호의 사항을 시행하여야 \n한다.  \n",
+      "is_rnd": false,
+      "is_informatization": false,
+      "keywords": [
+        "AI",
+        "기반",
+        "민군",
+        "무인복합체계",
+        "주파수",
+        "공동사용",
+        "운용",
+        "기술",
+        "개발"
+      ],
+      "page_start": 295,
+      "page_end": 300,
+      "kpi": [
+        {
+          "name": "(과제2) 레이다 전파간섭 저감수준 (단위 : dB)",
+          "weight": null,
+          "targets": {
+            "2026": "신규"
+          },
+          "actuals": {
+            "2026": "신규"
+          },
+          "measurement_method": "간섭신호로 증가된 오경보율(P ) FA_I 대비 간섭저감기술 적용 후 오경보율(P )의 FA-IS 개선 수준    ×    ",
+          "data_source": "컴퓨터 모의 실험결과서를 바탕으로 공인시험인증 기관 검증 "
+        },
+        {
+          "name": "(공통) 논문의 표준화된 순위보정 영향력 지수(mrnIF) (단위 : 점)",
+          "weight": null,
+          "targets": {
+            "2026": "신규"
+          },
+          "actuals": {
+            "2026": "신규"
+          },
+          "measurement_method": "∑(개별 SCI 논문게재저널의 mrnIF) / 총 SCI 논문게재 건수 ※rnIF=순위보정 영향력지수",
+          "data_source": "NTIS, JCR DB"
+        }
+      ],
+      "overview": {
+        "사업규모": "- 총사업비(해당되는 경우에만 기재) : 해당 없음",
+        "사업수혜자": "유·무인복합체계 소요군 및 관련 산업체 등",
+        "사업시행방법": "출연"
+      },
+      "budget_calculation": [],
+      "effectiveness": "□사업영향, 산출물 성과지표 등\n①2022~2026년도 성과계획서 상 성과지표 및 최근 5년간 성과 달성도\n성과지표\n구분\n2022\n2023\n2024\n2025\n2026\n2026 목표치 \n산출근거\n측정산식\n(또는 측정방법)\n자료수집방법\n(또는 자료출처)\n(과제",
+      "execution_detail": {
+        "method": null,
+        "recipients": null,
+        "subsidy_rate_detail": null
+      },
+      "yearly_budgets": {
+        "2026": 2800.0
+      },
+      "history": [],
+      "ai_domains": [
+        "통신/네트워크"
+      ]
+    },
+    {
+      "id": "PRJ-B22BD436",
+      "name": "과학기술정보통신부_AI 기반 주파수 간섭분석 및 전파 예측기술 개발(R&D)",
+      "project_name": "AI 기반 주파수 간섭분석 및 전파 예측기술 개발(R&D)",
+      "code": "2535-335",
+      "department": "과학기술정보통신부",
+      "division": "국립전파연구원",
+      "account_type": "일반회계",
+      "field": "통신",
+      "sector": "방송통신",
+      "program": {
+        "code": "2500",
+        "name": "전파활용방송서비스산업"
+      },
+      "unit_project": {
+        "code": "2535",
+        "name": "전파연구지원"
+      },
+      "detail_project": {
+        "code": "335",
+        "name": "AI 기반 주파수 간섭분석 및 전파 예측기술 개발"
+      },
+      "status": "계속",
+      "support_type": "직접,출연",
+      "implementing_agency": "정보통신기획평가원",
+      "subsidy_rate": null,
+      "loan_rate": null,
+      "project_managers": [
+        {
+          "sub_project": "AI 기반 주파수 간섭분석 및 전파 예측기술 개발(R&D)",
+          "managing_dept": "실·국·과(팀)",
+          "implementing_agency": null,
+          "manager": null,
+          "phone": null
+        }
+      ],
+      "budget": {
+        "2025_settlement": null,
+        "2026_original": 1000.0,
+        "2026_supplementary": 1000.0,
+        "2027_request": 3070.0,
+        "2027_budget": 3670.0,
+        "change_amount": 2670.0,
+        "change_rate": 267.0
+      },
+      "project_period": {
+        "start_year": 2025,
+        "end_year": 2029,
+        "duration": "5년",
+        "raw": "’25 ~ ’29년(5년)"
+      },
+      "total_cost": {
+        "total": null,
+        "government": null,
+        "raw": null
+      },
+      "sub_projects": [
+        {
+          "name": "AI 기반 차세대 주파수 간섭분석 기술 개발",
+          "budget_2024": null,
+          "budget_2025": 1000.0,
+          "budget_2026": 1920.0
+        },
+        {
+          "name": "차세대 모빌리티 고속통신 전파예측기술 연구",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": 1750.0
+        },
+        {
+          "name": "전 대역 이동통신 주파수의 이용효율 제고 및 디지털 혁신을 가속화하는 신 이동통신 주파수 공급체계 마련",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": null
+        },
+        {
+          "name": "글로벌 AI 기술 주도권 확보 및 AI와 디지털 신기술 융합 선도프로젝트를 통한 新시장 창출",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": null
+        },
+        {
+          "name": "AI·디지털 분야 글로벌 규범 논의 주도 및 글로벌 시장 주도권 확보를 추진- (대통령 공약 및 국정과제 연관성)",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": null
+        },
+        {
+          "name": "(공약 B-2-1-2) AI 시대, 차세대 첨단기술 개발과 투자를 강화하겠습니다",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": null
+        },
+        {
+          "name": "국가연구개발혁신법 제22조제3항",
+          "budget_2024": null,
+          "budget_2025": null,
+          "budget_2026": null
+        },
+        {
+          "name": "정보통신 진흥 및 융합 활성화 등에 관한 특별법 제32조제3항차세대 모빌리티 고속통신 전파예측 기술 연구출연정보통신기획평가원",
+          "budget_2024": 1750.0,
+          "budget_2025": null,
+          "budget_2026": null
+        }
+      ],
+      "purpose": "- (AI 기반 주파수 간섭분석 및 전파 예측기술 개발) 실 전파환경의 주파수 특성을 \n정확하게반영하는 AI 기반의 주파수 간섭분석 및 예측기술을 개발하여 최적화된 \n주파수 자원을 효율적으로 공급하는 디지털 주파수 관리 패러다임 변화를 주도  \n· (AI 기반 차세대 주파수 간섭분석 기술 개발) 차세대 전파기반 융합 신산업의 \n활성화에 필수인 고품질 주파수를 적시·적량 공급하기 위해 AI 기반으로 실 전파\n환경을 반영한 주파수 간섭분석 기술 개발\n· (차세대 모빌리티 고속통신 전파예측 기술 연구) 자율주행 자동차, UAM 등 융합\n서비스와 연계된 ‘3차원 배치 및 이동성’을 특징으로 하는 새로운 개념의 전파환경\n도래에 따라, 3차원 이동체 환경에 대한 AI 기반 전파 경로손실 예측기술 개발\n2024\n2025\n2026\n예산\n예산액\n(추경)\n예산\n현액\n집행액이월액불용액예산액\n(추경)\n예산\n현액\n집행액이월액불용액\n○기능별 분류(합계)\n-\n-\n-\n-\n-\n1,000\n1,000\n996\n-\n4\n3,670\n․AI 기반 차세대 \n주파수 간섭분석 \n기술 개발\n-\n-\n-\n-\n-\n1,000\n1,000\n996\n-\n4\n1,920\n․차세대 모빌리티 \n고속통신 전파예측\n기술 연구\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-\n1,750\n- 302 -",
+      "description": "- (AI 기반 주파수 간섭분석 및 전파 예측기술 개발) 실 전파환경의 주파수 특성을 \n정확하게반영하는 AI 기반의 주파수 간섭분석 및 예측기술을 개발하여 최적화된 \n주파수 자원을 효율적으로 공급하는 디지털 주파수 관리 패러다임 변화를 주도  \n· (AI 기반 차세대 주파수 간섭분석 기술 개발) 차세대 전파기반 융합 신산업의 \n활성화에 필수인 고품질 주파수",
+      "legal_basis": "①법령상 근거 및 조항 적시",
+      "is_rnd": true,
+      "is_informatization": false,
+      "keywords": [
+        "AI",
+        "기반",
+        "주파수",
+        "간섭분석",
+        "전파",
+        "예측기술",
+        "개발"
+      ],
+      "page_start": 301,
+      "page_end": 308,
+      "kpi": [],
+      "overview": {
+        "사업규모": "- 총사업비(해당되는 경우에만 기재) : 해당없음",
+        "사업수혜자": "방송·통신 등 전파 관련 민간업체",
+        "사업시행방법": "직접수행, 출연"
+      },
+      "budget_calculation": [],
+      "effectiveness": "□사업영향, 산출물 성과지표 등\n①2022~2026년도 성과계획서 상 성과지표 및 최근 5년간 성과 달성도\n성과지표\n구분\n2022\n2023\n2024\n2025\n2026\n2026 목표치 \n산출근거\n측정산식\n(또는 측정방법)\n자료수집방법\n(또는 자료출처)\n표준화된 순위 \n보정 영향력 지수\n(단위: 점)\n목표\n신규\n신규\n신규\n68.9\n70\n최근 3년(’21~’23년)간 \n“차세대 통신” 분야 \nmrnIF 지수 평균지수\n(6",
+      "execution_detail": {
+        "method": null,
+        "recipients": null,
+        "subsidy_rate_detail": null
+      },
+      "yearly_budgets": {
+        "2025": 1000.0,
+        "2026": 3670.0
+      },
+      "history": [
+        {
+          "year": 2022,
+          "description": "해당없음"
+        },
+        {
+          "year": 2023,
+          "description": "해당없음"
+        },
+        {
+          "year": 2024,
+          "description": "해당없음"
+        },
+        {
+          "year": 2025,
+          "description": "사업수행기관 선정(4월) 및 전파특성 학습데이터 확보를 위한 시험 측정"
+        },
+        {
+          "year": 2022,
+          "description": "- 해당없음"
+        },
+        {
+          "year": 2023,
+          "description": "- 해당없음"
+        },
+        {
+          "year": 2024,
+          "description": "- 해당없음"
+        },
+        {
+          "year": 2025,
+          "description": "- 불용 사유 : 집행잔액(4백만원)"
+        }
+      ],
+      "ai_domains": [
+        "교통/모빌리티",
+        "통신/네트워크",
+        "디지털전환(AX)"
+      ],
+      "ai_tech": [
+        "예측/분석AI"
+      ],
+      "rnd_stage": [
+        "개발"
+      ]
+    }
+  ]
+}
