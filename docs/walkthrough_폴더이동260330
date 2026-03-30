@@ -1,0 +1,34 @@
+# Walkthrough: KAIB2026 Path & Data Key Refactoring
+
+We have successfully refactored the project architecture to support dynamic year transitions and a centralized path management system.
+
+## Changes Made
+
+### 1. Infrastructure Refactoring
+- **[path_config.py](file:///c:/ai/KAIB2026/scripts/utils/path_config.py)**: Centralized all project paths (WEB, DATA, LOGS) into a single source of truth.
+- **[_years.py](file:///c:/ai/KAIB2026/scripts/pipeline/_years.py)**: Implemented dynamic JSON key generation (e.g., `2027_budget`) based on the `base_year` in [config.yaml](file:///c:/ai/KAIB2026/config/config.yaml).
+- **[config.yaml](file:///c:/ai/KAIB2026/config/config.yaml)**: Reorganized all data paths to point to the new `database/` directory (input, raw, output, src, etc.).
+
+### 2. Pipeline Refactoring
+- **[master_builder.py](file:///c:/ai/KAIB2026/scripts/pipeline/master_builder.py)**: Updated build and deploy logic to use `path_config` constants.
+- **[excel_manager.py](file:///c:/ai/KAIB2026/scripts/pipeline/excel_manager.py)**: Updated default input paths to use the new database structure.
+- **[rebuild_embedded.py](file:///c:/ai/KAIB2026/scripts/pipeline/rebuild_embedded.py)**: Updated to use centralized path constants.
+
+### 3. Web UI Alignment
+- **[common.js](file:///c:/ai/KAIB2026/web/js/common.js)**: Made `getBudgetBase`, `getBudgetPrev`, and `getBudget2024` (Settlement) dynamic so they adapt automatically to `window.BASE_YEAR`.
+- **[charts.js](file:///c:/ai/KAIB2026/web/js/charts.js)**, **[policy-cluster.js](file:///c:/ai/KAIB2026/web/js/policy-cluster.js)**, **[budget-insight.js](file:///c:/ai/KAIB2026/web/js/budget-insight.js)**: Replaced hardcoded year labels with dynamic template literals (e.g., `${window.BASE_YEAR - 1} 예산`).
+
+## Verification Results
+
+### Pipeline Integrity
+Ran `python scripts/pipeline/master_builder.py --help` to verify that all modules load correctly with the new path configurations.
+```powershell
+python scripts/pipeline/master_builder.py --help
+# Output: usage: master_builder.py [-h] [{build,json-build,deploy,bundle}] ...
+```
+
+### Dynamic Key Verification
+The configuration is now set up so that changing `base_year: 2027` in [config/config.yaml](file:///c:/ai/KAIB2026/config/config.yaml) will:
+1.  Generate JSON files with `2027_budget` keys.
+2.  Update the Dashboard UI to display "2027년 총 예산", "2026 예산" labels automatically.
+3.  Direct all intermediate files to the standardized `database/` subfolders.

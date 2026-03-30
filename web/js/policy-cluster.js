@@ -532,7 +532,7 @@
 
     pcCharts['theme-trend'] = new Chart(canvas, {
       type: 'line',
-      data: { labels: ['2024 결산', '2025 본예산', '${window.BASE_YEAR} 예산(안)'], datasets },
+      data: { labels: [`${window.BASE_YEAR - 2} 결산`, `${window.BASE_YEAR - 1} 본예산`, `${window.BASE_YEAR} 예산(안)`], datasets },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
@@ -1433,7 +1433,7 @@
     pcCharts['ai-trend'] = new Chart(document.getElementById('pc-ai-trend-chart'), {
       type: 'line',
       data: {
-        labels: ['2024 결산', '2025 본예산', '${window.BASE_YEAR} 예산(안)'],
+        labels: [`${window.BASE_YEAR - 2} 결산`, `${window.BASE_YEAR - 1} 본예산`, `${window.BASE_YEAR} 예산(안)`],
         datasets: [{
           label: 'AI 순예산',
           data: [aiBudget24, aiBudget25, aiBudget26],

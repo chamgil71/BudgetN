@@ -1653,6 +1653,8 @@
       }
     }
   </style>
+
+  <link id="theme-link" rel="stylesheet" href="">
 </head>
 
 <body>
@@ -1731,6 +1733,12 @@
             </button>
           </div>
         </div>
+        <select class="theme-toggle" id="theme-selector" onchange="changeAppTheme(this.value)" style="margin:0 4px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; color:#fff; cursor:pointer; font-size:12px; height:32px; padding:0 8px; appearance:auto; -webkit-appearance:auto;">
+          <option value="default" style="background:var(--bg-secondary); color:var(--text-primary)">기본 테마</option>
+          <option value="theme-toss" style="background:var(--bg-secondary); color:var(--text-primary)">Toss 스타일</option>
+          <option value="theme-neumorphism" style="background:var(--bg-secondary); color:var(--text-primary)">뉴모피즘</option>
+          <option value="theme-glassmorphism" style="background:var(--bg-secondary); color:var(--text-primary)">글래스모피즘</option>
+        </select>
         <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="테마 전환">
           <span id="theme-icon">&#9790;</span>
           <span class="label" id="theme-label">다크</span>

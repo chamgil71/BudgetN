@@ -1,4 +1,4 @@
-# KAIB2026 웹 UI 기능 분석 및 개선 제안
+26-03-30 ㅆ# KAIB2026 웹 UI 기능 분석 및 개선 제안
 
 ## 1. 개요
 본 문서는 `web/index.html`의 상단 헤더 기능 분석과 `kaib_html`의 디자인 시스템을 웹 버전에 적용하기 위한 방안을 정리합니다.
@@ -36,7 +36,7 @@
 *   **위치**: 헤더의 "문서"와 "다크" 버튼 사이 (Line 1733~1734 영역)
 *   **형태**: 가독성이 좋은 `select` 박스 또는 아이콘 버튼 그룹.
 
-**삽입 예시 코드:
+**삽입 예시 코드:**
 ```html
 <select class="theme-toggle" onchange="changeAppTheme(this.value)" id="theme-selector">
     <option value="default">기본 테마</option>

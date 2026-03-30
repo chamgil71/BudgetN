@@ -90,14 +90,14 @@ function initBudgetInsightTab(DATA) {
       <div id="bi-panel-flow" class="bi-panel active">
         <div class="bi-card">
           <div class="bi-card-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-            <span>연도별 예산 변화 추이 (2024-2026)</span>
+            <span>연도별 예산 변화 추이 (${window.BASE_YEAR - 2}-${window.BASE_YEAR})</span>
             <div id="flow-dept-selector" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px"></div>
           </div>
           <div class="chart-container" style="height:400px"><canvas id="chart-year-trend"></canvas></div>
         </div>
         <div class="grid-2" style="gap:12px">
           <div class="bi-card">
-            <div class="bi-card-title">3개년 총예산 비교 (2024-2025-2026)</div>
+            <div class="bi-card-title">3개년 총예산 비교 (${window.BASE_YEAR - 2}-${window.BASE_YEAR - 1}-${window.BASE_YEAR})</div>
             <div class="chart-container" style="height:320px"><canvas id="chart-3year-total"></canvas></div>
           </div>
           <div class="bi-card">
@@ -256,7 +256,7 @@ function initBudgetInsightTab(DATA) {
         <div class="bi-table-wrap">
           <table class="bi-table" id="bi-anomaly-table">
             <thead><tr>
-              <th>사업명</th><th>부처</th><th class="num">2025 예산</th><th class="num">${window.BASE_YEAR} 예산</th>
+              <th>사업명</th><th>부처</th><th class="num">${window.BASE_YEAR - 1} 예산</th><th class="num">${window.BASE_YEAR} 예산</th>
               <th class="num">증감률</th><th>변동유형</th><th>규모</th>
             </tr></thead>
             <tbody id="bi-anomaly-tbody"></tbody>

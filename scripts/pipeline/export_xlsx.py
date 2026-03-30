@@ -15,13 +15,14 @@ try:
 except ImportError:
     print("pip install openpyxl --break-system-packages"); sys.exit(1)
 
-ROOT    = Path(__file__).parent.parent.parent
-import sys as _sys; _sys.path.insert(0, str(Path(__file__).parent))
-from _years import get_years as _gy
+ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(ROOT))
+from config import path_config
+from scripts.pipeline._years import get_years as _gy
 
 def get_years(cfg=None):
-    root = Path(__file__).parent.parent.parent
-    return _gy(cfg if cfg else root/"config"/"config.yaml")
+    return _gy(cfg if cfg else ROOT/"config"/"config.yaml")
+
 ILLEGAL = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f]')
 
 def load_cfg(p):
@@ -65,14 +66,15 @@ def build_summary(ws, meta, cfg):
     c.fill = hfl(hbg); c.alignment = Alignment(horizontal="center", vertical="center")
     ws.row_dimensions[1].height = 30
 
+    Y = get_years()
     rows = [
         ("총 사업 수",         f"{meta.get('total_projects',0):,}개"),
         ("소관 부처 수",       f"{meta.get('total_departments',0):,}개"),
         ("R&D 사업",           f"{meta.get('rnd_projects',0):,}개"),
         ("정보화 사업",        f"{meta.get('info_projects',0):,}개"),
         ("신규 사업",          f"{meta.get('new_projects',0):,}개"),
-        ("2025 본예산 합계",   f"{meta.get('total_budget_2025',0):,.0f} 백만원"),
-        ("2026 확정예산 합계", f"{meta.get('total_budget_2026',0):,.0f} 백만원"),
+        (f"{Y['original']} 본예산 합계",   f"{meta.get(f'total_budget_{Y['original']}',0):,.0f} 백만원"),
+        (f"{Y['budget']} 확정예산 합계", f"{meta.get(f'total_budget_{Y['budget']}',0):,.0f} 백만원"),
         ("전년 대비 증감",     f"{meta.get('budget_change',0):+,.0f} 백만원"),
         ("데이터 추출일",      meta.get("extraction_date","")),
         ("원본 자료",          meta.get("source","")),
@@ -271,7 +273,7 @@ def protect(ws, pw=""):
 # ── 메인 ─────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="merged.json → 총괄 XLSX v2")
-    parser.add_argument("input", nargs="?", default=str(ROOT/"output"/"merged.json"))
+    parser.add_argument("input", nargs="?", default=str(path_config.MERGED_JSON_PATH))
     parser.add_argument("--config", default=str(ROOT/"config"/"config_export.yaml"))
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
@@ -284,11 +286,11 @@ def main():
     # sproject columns의 연도 레이블 교체
     sp_cols = cfg.get("sheet_projects", {}).get("columns", {})
     label_map = {
-        "budget.2024_settlement": Y["label_settlement"],
-        "budget.2025_original":   Y["label_original"],
-        "budget.2025_supplementary": Y["label_supplementary"],
-        "budget.2026_request":    Y["label_request"],
-        "budget.2026_budget":     Y["label_budget"],
+        f"budget.{Y['settlement']}_settlement": Y["label_settlement"],
+        f"budget.{Y['original']}_original":    Y["label_original"],
+        f"budget.{Y['original']}_supplementary": Y["label_supplementary"],
+        f"budget.{Y['budget']}_request":       Y["label_request"],
+        f"budget.{Y['budget']}_budget":        Y["label_budget"],
     }
     for fld, new_label in label_map.items():
         if fld in sp_cols:
@@ -328,7 +330,7 @@ def main():
     else:
         today   = datetime.date.today().strftime("%Y%m%d")
         prefix  = out_cfg.get("filename_prefix","총괄_AI재정사업")
-        out_dir = ROOT / out_cfg.get("dir","output")
+        out_dir = path_config.OUTPUT_DIR
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{prefix}_{today}.xlsx"
 

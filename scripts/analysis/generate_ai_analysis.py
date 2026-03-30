@@ -11,12 +11,18 @@ except ImportError:
 
 # 경로 설정
 ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(ROOT))
+from config import path_config
+from scripts.pipeline._years import get_years
+
+Y = get_years()
+
 import argparse
 
 # 경로 동적 설정 분기 처리를 위해 메인 최상단에 argparse 추가 적용
 parser = argparse.ArgumentParser()
-parser.add_argument("--input", default=str(ROOT / 'web' / 'data' / 'budget_db.json'))
-parser.add_argument("--outdir", default=str(ROOT / 'web' / 'data'))
+parser.add_argument("--input", default=str(path_config.MERGED_JSON_PATH))
+parser.add_argument("--outdir", default=str(path_config.OUTPUT_DIR))
 args, _ = parser.parse_known_args()
 
 DB_PATH = Path(args.input)

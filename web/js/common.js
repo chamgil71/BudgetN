@@ -31,7 +31,11 @@ window.getBudgetPrev = p => {
     const py = (window.BASE_YEAR || 2026) - 1;
     return p.budget?.[`budget_${py}`] ?? p.budget?.[`${py}_original`] ?? p[`budget_${py}`] ?? p.budget_prev ?? 0;
 };
-window.getBudget2024 = p => p ? (p.budget?.budget_2024 ?? p.budget?.['2024_settlement'] ?? p.budget_2024 ?? 0) : 0;
+window.getBudget2024 = p => {
+    if (!p) return 0;
+    const sy = (window.BASE_YEAR || 2026) - 2;
+    return p.budget?.[`budget_${sy}`] ?? p.budget?.[`${sy}_settlement`] ?? p[`budget_${sy}`] ?? 0;
+};
 
 window.getChangeRate = function (p) {
     if (!p) return 0;
@@ -201,3 +205,45 @@ window.getChartLabelColor = function () {
 window.getChartGridColor = function () {
     return getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || '#2a3a4e33';
 };
+
+/**
+ * UI & Theme Helpers
+ */
+window.toggleDocMenu = function (event) {
+    const menu = document.getElementById('doc-menu');
+    if (!menu) return;
+    const isVisible = menu.style.display === 'block';
+    menu.style.display = isVisible ? 'none' : 'block';
+    if (event) event.stopPropagation();
+};
+
+window.closeDocMenu = function () {
+    const menu = document.getElementById('doc-menu');
+    if (menu) menu.style.display = 'none';
+};
+
+window.changeAppTheme = function (theme) {
+    const link = document.getElementById('theme-link');
+    if (!link) return;
+    if (theme === 'default' || !theme) {
+        link.href = '';
+    } else {
+        link.href = `css/${theme}.css`;
+    }
+    localStorage.setItem('app-theme', theme);
+};
+
+// Close menu when clicking outside
+document.addEventListener('click', () => {
+    window.closeDocMenu();
+});
+
+// Initialize theme on load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('app-theme');
+    if (savedTheme) {
+        window.changeAppTheme(savedTheme);
+        const selector = document.getElementById('theme-selector');
+        if (selector) selector.value = savedTheme;
+    }
+});

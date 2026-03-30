@@ -478,7 +478,7 @@ window.renderWaterfall = function (projects) {
     const total2025 = projects.reduce((s, p) => s + window.getBudgetPrev(p), 0);
     const total2026 = projects.reduce((s, p) => s + window.getBudgetBase(p), 0);
 
-    const labels = ['2025 예산', ...items.map(e => e[0].substring(0, 6)), '기타', `${window.BASE_YEAR} 예산`];
+    const labels = [`${window.BASE_YEAR - 1} 예산`, ...items.map(e => e[0].substring(0, 6)), '기타', `${window.BASE_YEAR} 예산`];
     const baseData = [], incData = [], decData = [];
     let running = total2025;
 

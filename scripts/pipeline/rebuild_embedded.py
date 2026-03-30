@@ -1,13 +1,18 @@
 import json
 import os
 from pathlib import Path
+import sys
+ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(ROOT))
+from config import path_config
 
 def rebuild_embedded():
+    # Use path_config locations
     mapping = [
-        ('web/data/budget_db.json', 'web/js/embedded-data.js', 'window.EMBEDDED_DATA'),
-        ('web/data/similarity_analysis.json', 'web/js/embedded-sim-v10-data.js', 'const EMBEDDED_SIM_V10_DATA'),
-        ('web/data/collaboration_analysis.json', 'web/js/embedded-collab-data.js', 'const EMBEDDED_COLLAB_DATA'),
-        ('web/data/hybrid_similarity.json', 'web/js/embedded-hybrid-data.js', 'const EMBEDDED_HYBRID_DATA')
+        (path_config.WEB_DATA_DIR / 'budget_db.json', path_config.WEB_DIR / 'js' / 'embedded-data.js', 'window.EMBEDDED_DATA'),
+        (path_config.WEB_DATA_DIR / 'similarity_analysis.json', path_config.WEB_DIR / 'js' / 'embedded-sim-v10-data.js', 'const EMBEDDED_SIM_V10_DATA'),
+        (path_config.WEB_DATA_DIR / 'collaboration_analysis.json', path_config.WEB_DIR / 'js' / 'embedded-collab-data.js', 'const EMBEDDED_COLLAB_DATA'),
+        (path_config.WEB_DATA_DIR / 'hybrid_similarity.json', path_config.WEB_DIR / 'js' / 'embedded-hybrid-data.js', 'const EMBEDDED_HYBRID_DATA')
     ]
 
     for src, dst, var_name in mapping:

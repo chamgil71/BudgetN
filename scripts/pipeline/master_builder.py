@@ -9,6 +9,8 @@ import sys, shutil, datetime, argparse, subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(ROOT))
+from config import path_config
 
 def run_import():
     print("=== [1] Excel Import (input/ -> output/merged.json) ===")
@@ -24,9 +26,9 @@ def run_metadata_sync():
         print("pip install pyyaml 먼저 실행 필요")
         return
         
-    merged_path = ROOT / "output" / "merged.json"
+    merged_path = path_config.MERGED_JSON_PATH
     if not merged_path.exists():
-        print("❌ output/merged.json 이 없습니다!")
+        print(f"❌ {merged_path} 이 없습니다!")
         return
         
     with open(ROOT / "config" / "config.yaml", encoding="utf-8") as f:
@@ -61,16 +63,16 @@ def run_metadata_sync():
 def run_ai_analysis():
     print("=== [2] Run AI Analysis ===")
     script = str(ROOT / "scripts" / "analysis" / "generate_ai_analysis.py")
-    in_json = str(ROOT / "output" / "merged.json")
-    out_dir = str(ROOT / "output")
+    in_json = str(path_config.MERGED_JSON_PATH)
+    out_dir = str(path_config.OUTPUT_DIR)
     subprocess.run([sys.executable, script, "--input", in_json, "--outdir", out_dir], check=True)
 
 def create_unified_snapshot():
     print("=== [3] Create Snapshot ===")
     today = datetime.datetime.now().strftime("%Y%m%d")
-    out_dir = ROOT / "output"
+    out_dir = path_config.OUTPUT_DIR
     
-    merged_json = out_dir / "merged.json"
+    merged_json = path_config.MERGED_JSON_PATH
     snapshot_json = out_dir / f"merge_{today}_통합.json"
     
     if merged_json.exists():
@@ -92,17 +94,17 @@ def wrap_up():
 
 def deploy():
     print("=== Deploying output JSONs to web/data/ ===")
-    out_dir = ROOT / "output"
-    web_data = ROOT / "web" / "data"
+    out_dir = path_config.OUTPUT_DIR
+    web_data = path_config.WEB_DATA_DIR
     
-    merged = out_dir / "merged.json"
+    merged = path_config.MERGED_JSON_PATH
     sim = out_dir / "similarity_analysis.json"
     col = out_dir / "collaboration_analysis.json"
     
     success_count = 0
     if merged.exists():
         shutil.copy(merged, web_data / "budget_db.json")
-        print(" ✅ Deployed budget_db.json")
+        print(f" ✅ Deployed budget_db.json to {web_data}")
         success_count += 1
     if sim.exists():
         shutil.copy(sim, web_data / "similarity_analysis.json")

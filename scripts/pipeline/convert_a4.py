@@ -31,6 +31,13 @@ except ImportError:
     print("pip install openpyxl --break-system-packages"); sys.exit(1)
 
 ROOT    = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(ROOT))
+from config import path_config
+from scripts.pipeline._years import get_years as _get_years_module
+
+def get_years(cfg=None):
+    return _get_years_module(cfg if cfg else ROOT/"config"/"config.yaml")
+
 ILLEGAL = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f]')
 
 
@@ -130,13 +137,14 @@ def restore_type(field, raw):
     if raw is None or raw == "": return None
     if field in BOOL_FIELDS:
         return str(raw).strip().upper() in ("O","TRUE","1","YES")
-    if field in NUM_FIELDS:
+    num_fields = get_dynamic_fields()
+    if field in num_fields:
         if isinstance(raw,(int,float)): return raw
         try:
             s = str(raw).replace(",","").strip()
             # 사업기간(년) 처리: "3년" → 3
             s = re.sub(r'[^0-9.\-]','', s)
-            return float(s) if s and "." in s else int(s) if s else None
+            return float(s) if s and "." in s else int(s) if s and not "." in s else None
         except: return None
     if field in LIST_FIELDS:
         if isinstance(raw, list): return raw
@@ -192,11 +200,12 @@ def scan_sub_projects(ws, logger):
             try: return float(str(v).replace(",",""))
             except: return None
 
+        Y = get_years()
         subs.append({
             "name":        name,
-            "budget_2024": safe_num(vals[2] if len(vals)>2 else None),
-            "budget_2025": safe_num(vals[3] if len(vals)>3 else None),
-            "budget_2026": safe_num(vals[4] if len(vals)>4 else None),
+            f"budget_{Y['settlement']}": safe_num(vals[2] if len(vals)>2 else None),
+            f"budget_{Y['original']}": safe_num(vals[3] if len(vals)>3 else None),
+            f"budget_{Y['budget']}": safe_num(vals[4] if len(vals)>4 else None),
         })
 
     logger.debug(f"    내역사업 {len(subs)}건")
@@ -251,6 +260,7 @@ def extract_from_sheet(wb, ws, cfg, logger):
         logger.warning(f"  [{sname}] Named Range 없음 — 스킵")
         return None
 
+    Y = get_years()
     # 기본 구조
     p = {
         "id": None, "name": None, "project_name": None, "code": None,
@@ -263,9 +273,12 @@ def extract_from_sheet(wb, ws, cfg, logger):
         "subsidy_rate": None, "loan_rate": None,
         "project_managers": [],
         "budget": {
-            "2024_settlement": None, "2025_original": None,
-            "2025_supplementary": None, "2026_request": None,
-            "2026_budget": None, "change_amount": None, "change_rate": None,
+            f"{Y['settlement']}_settlement": None, 
+            f"{Y['original']}_original": None,
+            f"{Y['original']}_supplementary": None, 
+            f"{Y['request']}_request": None,
+            f"{Y['budget']}_budget": None, 
+            "change_amount": None, "change_rate": None,
         },
         "project_period": {"start_year": None, "end_year": None, "duration": None, "raw": None},
         "total_cost": {"total": None, "government": None, "raw": None},
@@ -315,15 +328,15 @@ def extract_from_sheet(wb, ws, cfg, logger):
     p["is_informatization"] = "(정보화)" in pname
 
     # change_amount 재계산
-    b6 = get_nested(p, "budget.2026_budget")
-    b5 = get_nested(p, "budget.2025_original")
-    if b6 is not None:
-        if b5 is not None and get_nested(p,"budget.change_amount") is None:
-            set_nested(p, "budget.change_amount", b6 - b5)
-            if b5 != 0:
-                set_nested(p, "budget.change_rate", round((b6-b5)/b5*100, 2))
-        elif b5 is None and get_nested(p,"budget.change_amount") is None:
-            set_nested(p, "budget.change_amount", b6)
+    b_base = get_nested(p, f"budget.{Y['budget']}_budget")
+    b_prev = get_nested(p, f"budget.{Y['original']}_original")
+    if b_base is not None:
+        if b_prev is not None and get_nested(p,"budget.change_amount") is None:
+            set_nested(p, "budget.change_amount", b_base - b_prev)
+            if b_prev != 0:
+                set_nested(p, "budget.change_rate", round((b_base-b_prev)/b_prev*100, 2))
+        elif b_prev is None and get_nested(p,"budget.change_amount") is None:
+            set_nested(p, "budget.change_amount", b_base)
 
     # yearly_budgets 갱신
     yb = p.get("yearly_budgets") or {}
@@ -334,9 +347,9 @@ def extract_from_sheet(wb, ws, cfg, logger):
                 mc = yaml.safe_load(f) or {}
             Y = mc.get("years", {})
             mapping = {
-                Y.get("settlement"): get_nested(p,"budget.2024_settlement"),
-                Y.get("original"):   get_nested(p,"budget.2025_original"),
-                Y.get("budget"):     get_nested(p,"budget.2026_budget"),
+                Y.get("settlement"): get_nested(p, f"budget.{Y['settlement']}_settlement"),
+                Y.get("original"):   get_nested(p, f"budget.{Y['original']}_original"),
+                Y.get("budget"):     get_nested(p, f"budget.{Y['budget']}_budget"),
             }
             for yr, val in mapping.items():
                 if yr and val is not None:
@@ -376,7 +389,7 @@ def convert_file(file_path, cfg, logger):
 
 # ── merged.json 저장 (upsert) ─────────────────────────────────
 def save_merged(new_projects, mode, logger, split_by=None, split_out_dir=None):
-    merged_path = ROOT / "output" / "merged.json"
+    merged_path = path_config.MERGED_JSON_PATH
     pk = "code"
     merged_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -394,6 +407,7 @@ def save_merged(new_projects, mode, logger, split_by=None, split_out_dir=None):
     else:
         metadata = {}
 
+    Y = get_years()
     if mode == "upsert":
         exist_map = {p.get(pk): p for p in existing if p.get(pk)}
         for np in new_projects:
@@ -416,8 +430,8 @@ def save_merged(new_projects, mode, logger, split_by=None, split_out_dir=None):
     for i, p in enumerate(all_projects, 1):
         p["id"] = i
 
-    total_2026 = sum((p.get("budget") or {}).get("2026_budget") or 0 for p in all_projects)
-    total_2025 = sum((p.get("budget") or {}).get("2025_original") or 0 for p in all_projects)
+    total_base = sum((p.get("budget") or {}).get(f"{Y['budget']}_budget") or 0 for p in all_projects)
+    total_prev = sum((p.get("budget") or {}).get(f"{Y['original']}_original") or 0 for p in all_projects)
     depts = {p.get("department") for p in all_projects if p.get("department")}
 
     merged = {
@@ -425,16 +439,16 @@ def save_merged(new_projects, mode, logger, split_by=None, split_out_dir=None):
             **metadata,
             "total_projects":    len(all_projects),
             "total_departments": len(depts),
-            "total_budget_2026": total_2026,
-            "total_budget_2025": total_2025,
-            "budget_change":     total_2026 - total_2025,
+            f"total_budget_{Y['budget']}": total_base,
+            f"total_budget_{Y['original']}": total_prev,
+            "budget_change":     total_base - total_prev,
             "rnd_projects":      sum(1 for p in all_projects if p.get("is_rnd")),
             "info_projects":     sum(1 for p in all_projects if p.get("is_informatization")),
             "new_projects":      sum(1 for p in all_projects if p.get("status") == "신규"),
             "budget_mismatch_count": 0,
             "extraction_date":   datetime.date.today().isoformat(),
             "source":            "A4 요약표 역추출",
-            "base_year":         cfg.get("base_year", 2026) if 'cfg' in locals() else 2026,
+            "base_year":         Y["base_year"],
         },
         "projects": all_projects,
         "analysis": {
@@ -501,14 +515,7 @@ def main():
         with open(cfg_path, encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
 
-    log_dir = ROOT / "logs"
-    try:
-        mc_path = ROOT / "config" / "config.yaml"
-        if mc_path.exists():
-            with open(mc_path, encoding="utf-8") as f:
-                mc = yaml.safe_load(f) or {}
-            log_dir = ROOT / mc.get("paths",{}).get("logs","logs")
-    except Exception: pass
+    log_dir = path_config.LOGS_DIR
 
     logger = setup_logger(log_dir)
 

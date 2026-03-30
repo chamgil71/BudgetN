@@ -1,12 +1,21 @@
-import os, re
-from pathlib import Path
-
 ROOT = Path(__file__).parent.parent.parent
-WEB_DIR = ROOT / "web"
-OUT_DIR = ROOT / "output"
+sys.path.insert(0, str(ROOT))
+from config import path_config
+from scripts.pipeline._years import get_years
+
+Y = get_years()
 
 def build_standalone():
-    index_path = WEB_DIR / "index.html"
+    index_path = path_config.WEB_DIR / "index.html"
+    if not index_path.exists():
+        print(f"❌ {index_path.name} 파일이 없습니다.")
+        return
+
+    with open(index_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    # WEB_DIR 정의
+    web_dir = path_config.WEB_DIR
     if not index_path.exists():
         print(f"❌ {index_path.name} 파일이 없습니다.")
         return
@@ -36,7 +45,7 @@ def build_standalone():
         src = match.group(1)
         if src.startswith("http") or src.startswith("//"): return match.group(0)
         
-        js_path = WEB_DIR / src
+        js_path = web_dir / src
         if js_path.exists():
             with open(js_path, "r", encoding="utf-8") as js_f:
                 return f"<script>\n/* inline: {src} */\n{js_f.read()}\n</script>"
@@ -45,8 +54,9 @@ def build_standalone():
     html = re.sub(r'<script[^>]*src="([^"]+\.js)"[^>]*>\s*</script>', replace_js, html, flags=re.IGNORECASE)
 
     # 결과물 저장
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    out_file = OUT_DIR / "KAIB2026_Standalone.html"
+    out_dir = path_config.OUTPUT_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / f"KAIB{Y['base_year']}_Standalone.html"
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(html)
     

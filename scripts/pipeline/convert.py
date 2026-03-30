@@ -49,13 +49,37 @@ def load_config():
         cfg = yaml.safe_load(f)
 
     # _years 기반으로 column_mapping 동적 교체
-    # config.yaml의 _budget_* 키 → 실제 연도 레이블로 변환
-    # 예: base_year=2027이면 "2025결산", "2026본예산", "2027정부안" 으로 교체
     Y = get_years(cfg)
     xlsx = cfg.setdefault("xlsx", {})
-    col_map = xlsx.setdefault("column_mapping", {})
+    
+    # 플레이스홀더 치환 지원 ({base}, {prev}, {settlement})
+    subs = {
+        "{base}":       str(Y["budget"]),
+        "{prev}":       str(Y["original"]),
+        "{settlement}": str(Y["settlement"]),
+    }
 
-    # _budget_* 내부 키 → 실제 연도 레이블 키로 교체
+    def resolve(v):
+        if isinstance(v, str):
+            for k, s in subs.items(): v = v.replace(k, s)
+        elif isinstance(v, list):
+            return [resolve(x) for x in v]
+        elif isinstance(v, dict):
+            return {rk: resolve(rv) for rk, rv in v.items()}
+        return v
+
+    # 1. xlsx 매핑 및 설정 치환
+    if "column_mapping" in xlsx:
+        xlsx["column_mapping"] = resolve(xlsx["column_mapping"])
+    if "sub_projects_mapping" in xlsx:
+        xlsx["sub_projects_mapping"] = resolve(xlsx["sub_projects_mapping"])
+    
+    # 2. schema 컬럼명 치환
+    if "schema" in cfg:
+        cfg["schema"] = resolve(cfg["schema"])
+
+    # _budget_* 내부 키 → 실제 연도 레이블 키로 교체 (엑셀 컬럼 매칭용)
+    col_map = xlsx.get("column_mapping", {})
     internal_to_label = {
         "_budget_settlement":    Y["label_settlement"],
         "_budget_original":      Y["label_original"],
@@ -67,9 +91,9 @@ def load_config():
         if internal_key in col_map:
             val = col_map.pop(internal_key)
             col_map[label]         = val
-            col_map[f"★{label}"] = val  # ★ 붙은 버전도 같은 필드로
+            col_map[f"★{label}"] = val
 
-    # 기존에 연도 하드코딩된 키가 남아있으면 제거 (하위 호환)
+    # stale_keys 제거
     stale_keys = [k for k in list(col_map.keys())
                   if any(x in k for x in ["결산","본예산","추경","요구","정부안","확정"])
                   and not k.startswith("_")
@@ -78,7 +102,7 @@ def load_config():
         col_map.pop(k, None)
 
     # 내역사업 _sub_year* → 실제 연도 레이블로 교체
-    sub_map = xlsx.setdefault("sub_projects_mapping", {})
+    sub_map = xlsx.get("sub_projects_mapping", {})
     sub_internal = {
         "_sub_year0": Y["label_sub"][0],
         "_sub_year1": Y["label_sub"][1],
@@ -90,15 +114,18 @@ def load_config():
             sub_map[label]         = val
             sub_map[f"★{label}"] = val
 
-    # derived_fields도 years 기반으로 갱신
+    # 3. derived_fields도 years 기반으로 동적 생성
     derived = cfg.setdefault("derived_fields", {})
+    b_key = f"budget.{Y['budget']}_budget"
+    o_key = f"budget.{Y['original']}_original"
+    
     derived["budget.change_amount"] = {
-        "formula": "budget.2026_budget - budget.2025_original",
-        "condition": "budget.2026_budget is not null and budget.2025_original is not null"
+        "formula": f"{b_key} - {o_key}",
+        "condition": f"{b_key} is not null and {o_key} is not null"
     }
     derived["budget.change_rate"] = {
-        "formula": "(budget.change_amount / budget.2025_original) * 100",
-        "condition": "budget.2025_original is not null and budget.2025_original != 0"
+        "formula": f"(budget.change_amount / {o_key}) * 100",
+        "condition": f"{o_key} is not null and {o_key} != 0"
     }
 
     return cfg

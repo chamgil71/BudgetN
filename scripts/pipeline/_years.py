@@ -72,16 +72,16 @@ def get_years(cfg_or_path=None):
         "label_sub":         [f"{y}예산" for y in sub_years],
         # 컬럼명 → JSON 필드 매핑 (convert.py용)
         "col_map": {
-            f"{settlement}결산":    "budget.2024_settlement|to_float",
-            f"{original}본예산":    "budget.2025_original|to_float",
-            f"{supplementary}추경": "budget.2025_supplementary|to_float",
-            f"{request}요구":       "budget.2026_request|to_float",
-            f"{budget}정부안":        "budget.2026_budget|to_float",
+            f"{settlement}결산":    f"budget.{settlement}_settlement|to_float",
+            f"{original}본예산":    f"budget.{original}_original|to_float",
+            f"{supplementary}추경": f"budget.{supplementary}_supplementary|to_float",
+            f"{request}요구":       f"budget.{request}_request|to_float",
+            f"{budget}정부안":        f"budget.{budget}_budget|to_float",
         },
         "sub_col_map": {
-            f"{sub_years[0]}예산":  "budget_2024|to_float",
-            f"{sub_years[1]}예산":  "budget_2025|to_float",
-            f"{sub_years[2]}예산":  "budget_2026|to_float",
+            f"{sub_years[0]}예산":  f"budget_{sub_years[0]}|to_float",
+            f"{sub_years[1]}예산":  f"budget_{sub_years[1]}|to_float",
+            f"{sub_years[2]}예산":  f"budget_{sub_years[2]}|to_float",
         },
     }
 

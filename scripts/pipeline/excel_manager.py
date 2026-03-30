@@ -17,6 +17,8 @@ from pathlib import Path
 
 # 파이프라인 모듈(원본 export/convert 계열 스크립트)과 경로 셋업
 ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(ROOT))
+from config import path_config
 sys.path.insert(0, str(ROOT / "scripts" / "pipeline"))
 
 import export_xlsx
@@ -29,7 +31,7 @@ def run_export(args, unknown_args):
     # 입력 파일이 명시되지 않았다면 웹 폴더의 원본 budget_db.json을 기본값으로 사용
     has_input = any(arg for arg in unknown_args if not arg.startswith('-'))
     if not has_input:
-        unknown_args.insert(0, str(ROOT / "web" / "data" / "budget_db.json"))
+        unknown_args.insert(0, str(path_config.WEB_DATA_DIR / "budget_db.json"))
 
     if args.type in ('summary', 'both'):
         print("=== [Export: Summary Excel] ===")

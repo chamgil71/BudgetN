@@ -5,19 +5,6 @@ pipeline:
   watch_interval: 3
   after_convert: keep
   archive_dir: input/processed
-paths:
-  templates: template/
-  input: input/
-  output: output/
-  merged: output/merged.json
-  logs: logs/
-  data_dir: data
-  docs_dir: docs
-  scripts_dir: scripts
-  template_dir: template
-  raw_data: data/budget_raw.json
-  db_data: data/budget_db.json
-  toc_mapping: data/toc_mapping.json
 output:
   save_individual: true
   individual_dir: output/individual/
@@ -56,11 +43,11 @@ xlsx:
     단위사업명: unit_project.name
     세부사업코드: detail_project.code
     세부사업명: detail_project.name
-    _budget_settlement: budget.2024_settlement|to_float
-    _budget_original: budget.2025_original|to_float
-    _budget_supplementary: budget.2025_supplementary|to_float
-    _budget_request: budget.2026_request|to_float
-    _budget_confirmed: budget.2026_budget|to_float
+    _budget_settlement: budget.{settlement}_settlement|to_float
+    _budget_original: budget.{prev}_original|to_float
+    _budget_supplementary: budget.{prev}_supplementary|to_float
+    _budget_request: budget.{base}_request|to_float
+    _budget_confirmed: budget.{base}_budget|to_float
     사업시작연도: project_period.start_year|to_int
     사업종료연도: project_period.end_year|to_int
     사업기간(원문): project_period.raw
@@ -81,9 +68,9 @@ xlsx:
   sub_projects_mapping:
     상위사업코드: parent_code
     내역사업명: name
-    _sub_year0: budget_2024|to_float
-    _sub_year1: budget_2025|to_float
-    _sub_year2: budget_2026|to_float
+    _sub_year0: budget_{settlement}|to_float
+    _sub_year1: budget_{prev}|to_float
+    _sub_year2: budget_{base}|to_float
   managers_mapping:
     상위사업코드: parent_code
     내역사업: sub_project
@@ -203,7 +190,7 @@ validation:
 metadata:
   source: 사용자 입력 (KAIB 파이프라인)
 project:
-  name: 대한민국 AI 재정계획 2026 분석 플랫폼
+  name: AI 재정계획 분석 플랫폼
   year: 2026
   version: 1.0.0
 schema:
@@ -232,11 +219,11 @@ schema:
   - duration
   - total_cost
   - total_gov_cost
-  - budget_2024_settlement
-  - budget_2025_original
-  - budget_2025_supplementary
-  - budget_2026_request
-  - budget_2026_budget
+  - budget_{settlement}_settlement
+  - budget_{prev}_original
+  - budget_{prev}_supplementary
+  - budget_{base}_request
+  - budget_{base}_budget
   - purpose
   - description
   - legal_basis
@@ -248,9 +235,9 @@ schema:
   sub_project_columns:
   - parent_id
   - sub_project_name
-  - budget_2024
-  - budget_2025
-  - budget_2026
+  - budget_{settlement}
+  - budget_{prev}
+  - budget_{base}
   - managing_dept
   - implementing_agency
 

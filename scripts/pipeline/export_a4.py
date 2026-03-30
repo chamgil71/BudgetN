@@ -22,8 +22,9 @@ except ImportError:
     print("pip install openpyxl --break-system-packages"); sys.exit(1)
 
 ROOT = Path(__file__).parent.parent.parent
-import sys as _sys; _sys.path.insert(0, str(ROOT/"scripts"))
-from _years import get_years as _get_years_module
+sys.path.insert(0, str(ROOT))
+from config import path_config
+from scripts.pipeline._years import get_years as _get_years_module
 
 def get_years(cfg=None):
     return _get_years_module(cfg if cfg else ROOT/"config"/"config.yaml")
@@ -219,9 +220,9 @@ def build_sheet(wb, ws, p, cfg, Y):
             f"■ 예산 현황 (단위: 백만원)  ┃  증감액·증감률 자동계산"); row += 1
 
         bhdrs = [
-            (f"{Y['settlement']} 결산",  "budget.2024_settlement"),
-            (f"{Y['original']} 본예산",  "budget.2025_original"),
-            (f"{Y['budget']} 확정",      "budget.2026_budget"),
+            (f"{Y['settlement']} 결산",  f"budget.{Y['settlement']}_settlement"),
+            (f"{Y['original']} 본예산",  f"budget.{Y['original']}_original"),
+            (f"{Y['budget']} 확정",      f"budget.{Y['budget']}_budget"),
             ("증감액 ▶자동",             "budget.change_amount"),
             ("증감률(%) ▶자동",          "budget.change_rate"),
         ]
@@ -256,8 +257,8 @@ def build_sheet(wb, ws, p, cfg, Y):
 
         # 추경·요구 (별도 행)
         if sec.get("budget_detail", True):
-            for lbl,fld in [(f"{Y['supplementary']} 추경","budget.2025_supplementary"),
-                             (f"{Y['request']} 요구","budget.2026_request")]:
+            for lbl,fld in [(f"{Y['supplementary']} 추경", f"budget.{Y['original']}_supplementary"),
+                             (f"{Y['request']} 요구", f"budget.{Y['budget']}_request")]:
                 label_cell(ws,row,1,lbl)
                 raw=gn(p,fld)
                 c=value_cell(ws,row,2,raw,span=4)
@@ -337,7 +338,8 @@ def build_sheet(wb, ws, p, cfg, Y):
             c.font=Font(name=FN,size=9); c.fill=hfl(bg); c.border=bd()
             c.alignment=Alignment(vertical="center")
             ws.cell(row=row,column=2).fill=hfl(bg); ws.cell(row=row,column=2).border=bd()
-            for ci2,fk in zip([3,4,5],["budget_2024","budget_2025","budget_2026"]):
+            sub_keys = [f"budget_{Y['settlement']}", f"budget_{Y['original']}", f"budget_{Y['budget']}"]
+            for ci2,fk in zip([3,4,5], sub_keys):
                 v=sub.get(fk)
                 c=ws.cell(row=row,column=ci2,value=v)
                 c.font=Font(name=FN,size=9); c.fill=hfl(bg); c.border=bd()
@@ -559,7 +561,7 @@ def main():
         if filt.get("status")     and p.get("status") != filt["status"]: continue
         if filt.get("is_rnd") is not None and p.get("is_rnd") != filt["is_rnd"]: continue
         if filt.get("min_budget"):
-            b = (p.get("budget") or {}).get("2026_budget") or 0
+            b = (p.get("budget") or {}).get(f"{Y['budget']}_budget") or 0
             if b < filt["min_budget"]: continue
         filtered.append(p)
 
@@ -576,7 +578,7 @@ def main():
         today  = datetime.date.today().strftime("%Y%m%d")
         prefix = out_cfg.get("filename_prefix","A4요약_AI재정사업")
         suffix = f"_{args.dept}" if args.dept else ""
-        out_dir = ROOT / out_cfg.get("dir","output")
+        out_dir = path_config.OUTPUT_DIR
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{prefix}{suffix}_{today}.xlsx"
 
