@@ -22,6 +22,20 @@ class BudgetParser:
         self.base_year = self.config.get('years', {}).get('base_year', 2026)
         self.project_columns = self.config.get('schema', {}).get('project_columns', [])
         self.year_offsets = self._calculate_offsets()
+        
+    # ✅ 수정: budget 전용 상수 정의 (config/template 모두 일치하는 형식)
+    BUDGET_KEYS = {
+        '2024_settlement':    [r'2024.*결산', r'결산'],
+        '2025_original':      [r'2025.*본예산(?!.*추경)', r'본예산(?!\(B\))'],
+        '2025_supplementary': [r'추경\(A\)', r'추경'],
+        '2026_request':       [r'요구안'],
+        '2026_budget':        [r'본예산\(B\)', r'2026.*본예산'],
+    }
+
+    def _extract_budget(self, tables):
+        budget = {k: None for k in self.BUDGET_KEYS}
+        
+    # ... 헤더 느슨한 매칭으로 각 컬럼 추출
 
     def _calculate_offsets(self) -> Dict[str, int]:
         offsets = {}

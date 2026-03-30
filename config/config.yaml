@@ -160,7 +160,7 @@ defaults:
   purpose: null
   description: null
   legal_basis: null
-  effectiveness: (작성예정)
+  effectiveness: null
   execution_detail:
     method: null
     recipients: null

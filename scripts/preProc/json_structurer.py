@@ -36,6 +36,18 @@ class JsonStructurer:
 
     def _get_project_id(self, text: str) -> Optional[str]:
         match = re.search(r'(\d{4}-\d{3})', text)
+        match = re.search(r'\((\d{4}-\d{3,4})\)', text)
+        return match.group(1) if match else None
+    
+    # ✅ 수정: 전용 메서드로 교체
+    def _is_project_start(self, text: str) -> Optional[str]:
+        """
+        '사 업 명' 단독 줄 다음에 '(N) 사업명 (NNNN-NNN)' 패턴이 있을 때만 사업 시작으로 판정.
+        """
+        match = re.search(
+            r'사\s*업\s*명\s*\n\s*(?:\(\d+\))?\s*.+?\((\d{4}-\d{3,4})\)',
+            text
+        )
         return match.group(1) if match else None
 
     # [수정 1] tail_start_keyword를 Optional로 변경
@@ -66,8 +78,8 @@ class JsonStructurer:
             
             # Project 판정
             elif current_section != "tail":
-                p_id = self._get_project_id(text)
-                if "사업명" in text_content and p_id:
+                p_id = self._is_project_start(text)
+                if p_id:
                     current_section = "projects"
                     current_project_id = p_id
                     if p_id in doc.projects:
@@ -153,12 +165,21 @@ class JsonStructurer:
             content = doc.dict() if hasattr(doc, 'dict') else doc.model_dump()
             output_file.write_text(json.dumps(content, ensure_ascii=False, indent=2), encoding='utf-8')
             print(f"💾 단일 파일 저장: {output_file}")
-            
+
+        # ✅ 수정
         elif mode == "multi":
             for part in ["front", "projects", "tail"]:
-                output_file = base_path.with_name(f"{base_path.name}_{part}_structured.json")
                 part_data = getattr(doc, part)
-                content = part_data.dict() if hasattr(part_data, 'dict') else part_data
+                if part == "projects":
+                    # 각 ProjectData 객체를 개별 직렬화
+                    content = {
+                        k: (v.model_dump() if hasattr(v, 'model_dump') else
+                            v.dict() if hasattr(v, 'dict') else v)
+                        for k, v in part_data.items()
+                    }
+                else:
+                    content = (part_data.model_dump() if hasattr(part_data, 'model_dump') else
+                            part_data.dict() if hasattr(part_data, 'dict') else part_data)
                 output_file.write_text(json.dumps(content, ensure_ascii=False, indent=2), encoding='utf-8')
                 print(f"💾 분할 파일 저장: {output_file}")
 
