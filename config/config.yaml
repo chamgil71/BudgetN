@@ -112,8 +112,7 @@ derived_fields:
     condition: budget.{prev}_original is not null and budget.{prev}_original != 0
   project_period.duration:
     formula: str(project_period.end_year - project_period.start_year + 1) + '년'
-    condition: project_period.start_year is not null and project_period.end_year is
-      not null
+    condition: project_period.start_year is not null and project_period.end_year is not null
 defaults:
   division: null
   account_type: null
@@ -148,6 +147,7 @@ defaults:
   description: null
   legal_basis: null
   effectiveness: null
+  evaluations: null
   execution_detail:
     method: null
     recipients: null
@@ -156,7 +156,7 @@ defaults:
   overview: {}
   kpi: []
   history: []
-  yearly_budgets: {}
+  yearly_budgets: []
   ai_domains: []
   ai_tech: null
   rnd_stage: null
@@ -232,6 +232,14 @@ schema:
   - ai_domains
   - page_start
   - page_end
+  - subsidy_rate
+  - loan_rate
+  - execution_detail.method
+  - execution_detail.recipients
+  - budget_calculation
+  - effectiveness
+  - evaluations
+
   sub_project_columns:
   - parent_id
   - sub_project_name
@@ -240,6 +248,29 @@ schema:
   - budget_{base}
   - managing_dept
   - implementing_agency
+
+  managers_columns:
+  - parent_code
+  - sub_project
+  - managing_dept
+  - implementing_agency
+  - manager
+  - phone
+
+  kpi_columns:
+  - parent_code
+  - indicator_name
+  - target_value
+
+  history_columns:
+  - parent_code
+  - year
+  - description
+
+  yearly_budget_columns:
+  - parent_code
+  - year
+  - settlement_amount
 
 search_aliases:
   '과기부': ['과학기술정보통신부', '과기정통부']
