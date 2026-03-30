@@ -1,4 +1,14 @@
-# json_structurer.py (경계 검증 강화 및 Tail 옵션화 반영)
+# json_structurer.py (v2 - 사업 경계 오탐 수정 + multi 저장 직렬화 수정)
+#
+# [v2 변경사항]
+# BUG-S1: 사업 경계 오탐 수정
+#   - 기존: "사업명" in text_content (부분 문자열) → 내역사업명/표 헤더에 오탐
+#   - 수정: _is_project_start() 전용 메서드
+#           "사 업 명\n(N) 사업명 (NNNN-NNN)" 제목 패턴만 허용
+# BUG-S2: _get_project_id() 코드 오인식 보완
+#   - 괄호 내 패턴 우선 매칭으로 예산금액 오인식 감소
+# BUG-S3: save() multi 모드 직렬화 누락
+#   - projects: Dict[str, ProjectData] → 각 ProjectData.model_dump() 처리
 
 import json
 import re
@@ -35,20 +45,24 @@ class JsonStructurer:
         self.total_pages_in_raw = len(self.pages)
 
     def _get_project_id(self, text: str) -> Optional[str]:
-        match = re.search(r'(\d{4}-\d{3})', text)
-        match = re.search(r'\((\d{4}-\d{3,4})\)', text)
-        return match.group(1) if match else None
-    
-    # ✅ 수정: 전용 메서드로 교체
+        """보조용: 본문 어딘가의 NNNN-NNN 패턴 반환 (괄호 내 우선)."""
+        m = re.search(r'\((\d{4}-\d{3,4})\)', text)
+        if m:
+            return m.group(1)
+        m = re.search(r'(\d{4}-\d{3})', text)
+        return m.group(1) if m else None
+
     def _is_project_start(self, text: str) -> Optional[str]:
         """
-        '사 업 명' 단독 줄 다음에 '(N) 사업명 (NNNN-NNN)' 패턴이 있을 때만 사업 시작으로 판정.
+        사업 시작 페이지 정밀 판정.
+        '사 업 명' 단독 줄 바로 다음에 '(N) 사업명 (NNNN-NNN)' 패턴이 있을 때만 코드 반환.
+        단순 '사업명' 부분 문자열(가. 예산 총괄표 헤더, 내역사업명 등) 오탐 방지.
         """
-        match = re.search(
+        m = re.search(
             r'사\s*업\s*명\s*\n\s*(?:\(\d+\))?\s*.+?\((\d{4}-\d{3,4})\)',
             text
         )
-        return match.group(1) if match else None
+        return m.group(1) if m else None
 
     # [수정 1] tail_start_keyword를 Optional로 변경
     def process(self, tail_start_keyword: Optional[str] = None, dry_run: bool = False) -> Optional[StructuredDocument]:
@@ -76,9 +90,9 @@ class JsonStructurer:
             if clean_keyword and current_section != "tail" and clean_keyword in text_content:
                 current_section = "tail"
             
-            # Project 판정
+            # Project 판정 (BUG-S1 수정: 정밀 패턴으로 오탐 방지)
             elif current_section != "tail":
-                p_id = self._is_project_start(text)
+                p_id = self._is_project_start(text)   # 사업명+코드 제목 줄 패턴만 허용
                 if p_id:
                     current_section = "projects"
                     current_project_id = p_id
@@ -165,22 +179,23 @@ class JsonStructurer:
             content = doc.dict() if hasattr(doc, 'dict') else doc.model_dump()
             output_file.write_text(json.dumps(content, ensure_ascii=False, indent=2), encoding='utf-8')
             print(f"💾 단일 파일 저장: {output_file}")
-
-        # ✅ 수정
+            
         elif mode == "multi":
             for part in ["front", "projects", "tail"]:
+                output_file = base_path.with_name(f"{base_path.name}_{part}_structured.json")
                 part_data = getattr(doc, part)
+                # BUG-S3 수정: projects는 Dict[str, ProjectData] → 각 값을 개별 직렬화
                 if part == "projects":
-                    # 각 ProjectData 객체를 개별 직렬화
-                    content = {
-                        k: (v.model_dump() if hasattr(v, 'model_dump') else
-                            v.dict() if hasattr(v, 'dict') else v)
+                    serialized = {
+                        k: (v.model_dump() if hasattr(v, "model_dump") else
+                            v.dict()       if hasattr(v, "dict")       else v)
                         for k, v in part_data.items()
                     }
                 else:
-                    content = (part_data.model_dump() if hasattr(part_data, 'model_dump') else
-                            part_data.dict() if hasattr(part_data, 'dict') else part_data)
-                output_file.write_text(json.dumps(content, ensure_ascii=False, indent=2), encoding='utf-8')
+                    serialized = (part_data.model_dump() if hasattr(part_data, "model_dump") else
+                                  part_data.dict()       if hasattr(part_data, "dict")       else
+                                  part_data)
+                output_file.write_text(json.dumps(serialized, ensure_ascii=False, indent=2), encoding='utf-8')
                 print(f"💾 분할 파일 저장: {output_file}")
 
 # -------------------------

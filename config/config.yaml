@@ -7,7 +7,7 @@ pipeline:
   archive_dir: input/processed
 output:
   save_individual: true
-  individual_dir: output/individual/
+  individual_dir: database/output/individual/
   merge_mode: upsert
   dashboard_compatible: true
   auto_fill_defaults: true
@@ -105,11 +105,11 @@ derived_fields:
   is_informatization:
     formula: contains(project_name, '(정보화)')
   budget.change_amount:
-    formula: budget.2026_budget - budget.2025_original
-    condition: budget.2026_budget is not null and budget.2025_original is not null
+    formula: budget.{base}_budget - budget.{prev}_original
+    condition: budget.{base}_budget is not null and budget.{prev}_original is not null
   budget.change_rate:
-    formula: (budget.change_amount / budget.2025_original) * 100
-    condition: budget.2025_original is not null and budget.2025_original != 0
+    formula: (budget.change_amount / budget.{prev}_original) * 100
+    condition: budget.{prev}_original is not null and budget.{prev}_original != 0
   project_period.duration:
     formula: str(project_period.end_year - project_period.start_year + 1) + '년'
     condition: project_period.start_year is not null and project_period.end_year is

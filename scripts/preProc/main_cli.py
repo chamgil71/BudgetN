@@ -58,14 +58,14 @@ class PipelineManager:
         self.data_dir = self.project_root / "database"
         self.src_dir = self.data_dir / "src"
         self.raw_dir = self.data_dir / "raw"
-        self.tmp_dir = self.data_dir / "tmp"
+        self.structure_dir = self.data_dir / "structure"
         self.parse_result_dir = self.data_dir / "parse_result"
         
         # 기본 config 경로 (루트의 config 폴더)
         self.default_config_path = self.project_root / "config" / "config.yaml"
 
         # 작업에 필요한 폴더들이 없으면 자동 생성
-        for d in [self.src_dir, self.raw_dir, self.tmp_dir, self.parse_result_dir]:
+        for d in [self.src_dir, self.raw_dir, self.structure_dir, self.parse_result_dir]:
             d.mkdir(parents=True, exist_ok=True)
 
     def ask_proceed(self, step_name: str) -> bool:
@@ -129,7 +129,7 @@ class PipelineManager:
         
         # 각 단계별 목표 파일 경로 (고정)
         raw_json_path = self.raw_dir / f"{base_name}_raw.json"
-        structured_json_path = self.tmp_dir / f"{base_name}_structured.json"
+        structured_json_path = self.structure_dir / f"{base_name}_structured.json"
         final_out_path = self.parse_result_dir / f"{base_name}_parsed.json"
 
         # 입력 파일에 따른 상태 세팅

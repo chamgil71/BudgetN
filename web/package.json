@@ -1,7 +1,7 @@
 {
-    "name": "kaib2026-dashboard",
+    "name": "budgetn-dashboard",
     "version": "1.0.0",
-    "description": "2026 AI Budget Analysis Platform",
+    "description": "Budget Analysis Platform",
     "main": "index.html",
     "scripts": {
         "dev": "vite",

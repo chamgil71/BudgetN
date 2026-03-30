@@ -58,8 +58,15 @@ class PdfToJsonConverter:
                     logger.info(f"[{i}/{total}] 페이지 처리 중...")
 
                     text = page.extract_text()
-
-                    raw_tables = page.extract_tables()
+                    raw_tables = page.extract_tables(table_settings={
+                        "vertical_strategy": "lines",    # 선(Line)을 기준으로 열 구분
+                        "horizontal_strategy": "lines",  # 선(Line)을 기준으로 행 구분
+                        "snap_tolerance": 3,             # 인접한 선들을 하나로 합치는 감도
+                        "join_tolerance": 3,             # 끊어진 선을 연결하는 감도
+                        "text_x_tolerance": 2,           # 텍스트 중복 인식을 방지하기 위한 x축 허용치 (중요!)
+                        "text_y_tolerance": 2            # y축 허용치
+                    })
+                    
                     tables = [
                         TableModel(rows=table)
                         for table in raw_tables
@@ -144,14 +151,14 @@ def main():
 
     parser.add_argument(
         "-i", "--input",
-        default="src",    
+        default="database/src",    
         help="PDF 파일 또는 폴더 경로(default: src)"
     )
 
     parser.add_argument(
         "-o", "--output",
-        default="input",
-        help="출력 폴더 (default: input)"
+        default="database/raw",    
+        help="출력 폴더 (default: raw)"
     )
 
     args = parser.parse_args()

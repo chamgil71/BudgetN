@@ -103,14 +103,18 @@
         "recipients": "String: 지원대상 텍스트",
         "subsidy_rate_detail": "Null"
       },
-      "yearly_budgets": {
-        "2026": "Float: 26년도 예산"
-      },
+
+      "yearly_budgets": [
+        {
+          "year": "Integer: 해당 연도",
+          "amount": "Float: 예산 금액"
+        }
+      ],
+
       "history": "List: 연혁 (기본 빈 배열)",
       "ai_domains": "List: AI 적용 분야 (기본 ['디지털전환(AX)'])"
     }
   ],
-
 
   "analysis": {
     "by_department": {},
