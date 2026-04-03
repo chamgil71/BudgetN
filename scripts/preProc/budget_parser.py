@@ -120,64 +120,152 @@ class BudgetParser:
                 res["loan_rate"] = self._clean_num(self._get_vertical_val(rows, clean_row0, "융자율(%)", 1, 1))
 
             # 💡 [4] 소관부처 및 시행주체 (독립된 if문)
-            if "소관부처" in h_str or "사업시행주체" in h_str:
+            # BUG-P4: h_str_extended 사용 → 헤더가 병합셀로 2열에 나뉜 경우도 감지
+            if "소관부처" in h_str_extended or "사업시행주체" in h_str_extended:
                 current_sub_name = ""
                 for r in rows[1:]:
                     col0 = str(r[0]).replace('\n', ' ').strip() if r[0] else ""
                     col1 = str(r[1]).replace(' ', '').strip() if len(r) > 1 and r[1] else ""
                     col2 = str(r[2]).replace('\n', ' ').strip() if len(r) > 2 and r[2] else ""
                     
+                    # col0에 사업명이 있으면 현재 내역사업 갱신 (병합셀 이전값 승계)
                     if col0 and col0 not in ["사업명", "구분"]:
-                        current_sub_name = col0
+                        # \n 포함 병합 사업명 → 첫 줄만 사업명으로 사용
+                        current_sub_name = col0.split('\n')[0].strip()
                         if current_sub_name not in sub_dept_map:
                             sub_dept_map[current_sub_name] = {"managing_dept": "", "implementing_agency": ""}
                     if current_sub_name:
-                        if "소관부처" in col1: sub_dept_map[current_sub_name]["managing_dept"] = col2
-                        elif "사업시행주체" in col1 or "시행기관" in col1: sub_dept_map[current_sub_name]["implementing_agency"] = col2
+                        if "소관부처" in col1:
+                            sub_dept_map[current_sub_name]["managing_dept"] = col2
+                        elif "사업시행주체" in col1 or "시행기관" in col1:
+                            sub_dept_map[current_sub_name]["implementing_agency"] = col2
 
+                # 본사업 implementing_agency = 첫 번째 내역사업의 시행주체
                 if sub_dept_map and not res["implementing_agency"]:
                     first_sub = list(sub_dept_map.keys())[0]
                     res["implementing_agency"] = sub_dept_map[first_sub].get("implementing_agency", "")
 
-            # 💡 [5] 지출계획 총괄표 병합 셀 처리 (독립된 if문)
-            if "결산" in h_str and "예산" in h_str and "증감" in h_str:
-                header_combined = [str(rows[0][i] or "") + str(rows[1][i] if len(rows)>1 else "") for i in range(len(rows[0]))]
+            # 💡 [5] 지출계획 총괄표 (독립된 if문)
+            # BUG-P5: "결산"+"예산"+"증감" 조건이 "사업 성격" 표의 "예산사업" 문자에 오탐됨
+            # → "요구안" 또는 "본예산(B)"를 추가 필수 조건으로 강화 (총괄표에만 존재하는 고유 키워드)
+            h_str_ext_full = "".join(str(c).replace(" ","").replace("\n","") for r in rows[:2] for c in r if c)
+            if ("결산" in h_str_ext_full and "요구안" in h_str_ext_full and
+                    (f"{self.base_year}" in h_str_ext_full or "본예산(B)" in h_str_ext_full)):
+                # combined: row[0] + row[1] 열별 결합
+                n_cols = len(rows[0])
+                header_combined = [
+                    (str(rows[0][i] or "") + str(rows[1][i] if len(rows) > 1 and i < len(rows[1]) else ""))
+                    .replace('\n', '').replace(' ', '')
+                    for i in range(n_cols)
+                ]
+                y2, y1, y0 = self.base_year - 2, self.base_year - 1, self.base_year
                 idx_map = {
-                    f"{self.base_year-2}_settlement": self._find_idx(header_combined, "결산"),
-                    f"{self.base_year-1}_original": self._find_idx(header_combined, "본예산", exclude="B"),
-                    f"{self.base_year-1}_supplementary": self._find_idx(header_combined, "추경"),
-                    f"{self.base_year}_request": self._find_idx(header_combined, "요구안"),
-                    f"{self.base_year}_budget": self._find_idx(header_combined, ["본예산(B)", "정부안"])
+                    f"{y2}_settlement": self._find_idx(header_combined, [f"{y2}년결산", "결산"]),
+                    f"{y1}_original":   self._find_idx(header_combined, "본예산", exclude="B"),
+                    f"{y1}_supplementary": self._find_idx(header_combined, ["추경*(A)", "추경(A)", "추경"]),
+                    f"{y0}_request":    self._find_idx(header_combined, "요구안"),
+                    f"{y0}_budget":     self._find_idx(header_combined, ["본예산(B)", "본예산B", "정부안"]),
                 }
+                # 데이터 행: 숫자가 3개 이상이고 사업명/헤더 행이 아닌 첫 번째 행
                 for r in rows[1:]:
-                    if sum(1 for c in r if re.search(r'\d', str(c))) >= 3 and not any(k in str(r[0]) for k in ["사업명", "결산", "예산"]):
+                    if sum(1 for c in r if re.search(r'\d', str(c or ""))) >= 3 \
+                            and not any(k in str(r[0] or "") for k in ["사업명", "결산", "예산", "구분"]):
                         for k, idx in idx_map.items():
                             if idx != -1 and idx < len(r):
                                 res["budget"][k] = self._clean_num(r[idx])
                         break
-            
-            # 💡 [6] 내역사업 계획 내역 (독립된 if문)
-            if "합계" in h_str or "기능별" in h_str or "내역사업" in h_str:
-                header_combined = [str(rows[0][i] or "") + str(rows[1][i] if len(rows)>1 else "") for i in range(len(rows[0]))]
-                idx_y2 = self._find_idx(header_combined, [f"{self.base_year-2}", "결산", "집행액"])
-                idx_y1 = self._find_idx(header_combined, [f"{self.base_year-1}", "본예산", "현액"])
-                idx_y0 = self._find_idx(header_combined, [f"{self.base_year}", "예산", "정부안"])
 
-                for r in rows[1:]:
-                    name = str(r[0]).strip().replace('\n', ' ')
-                    if not name or any(k in name for k in ["합계", "소계", "총계"]): continue
-                    clean_name = re.sub(r'^[·\-\s]*', '', name)
-                    
-                    if clean_name not in sub_budget_map:
-                        sub_budget_map[clean_name] = {}
-                        
-                    val_y2 = self._clean_num(r[idx_y2]) if idx_y2 != -1 and idx_y2 < len(r) else 0.0
-                    val_y1 = self._clean_num(r[idx_y1]) if idx_y1 != -1 and idx_y1 < len(r) else 0.0
-                    val_y0 = self._clean_num(r[idx_y0]) if idx_y0 != -1 and idx_y0 < len(r) else 0.0
-                    
-                    if val_y2 > 0: sub_budget_map[clean_name][f"budget_{self.base_year-2}"] = val_y2
-                    if val_y1 > 0: sub_budget_map[clean_name][f"budget_{self.base_year-1}"] = val_y1
-                    if val_y0 > 0: sub_budget_map[clean_name][f"budget_{self.base_year}"] = val_y0
+            # 💡 [6] 기능별(내역사업별) 계획 내역 (독립된 if문)
+            # BUG-P6: 병합 셀로 내역사업명·금액이 \n 구분 한 셀에 묶임 → 행 단위 순회 불가
+            # → 연도 anchor 기반 컬럼 탐색 + col[0] \n 분해로 내역사업명·금액 동시 추출
+            # 결산표(표15)와 구분: "다음연도이월액"이 있으면 결산표이므로 skip
+            is_func_table = (
+                "예산액" in h_str_ext_full and
+                "집행액" in h_str_ext_full and
+                "이월액" in h_str_ext_full and
+                "다음연도" not in h_str_ext_full and   # 결산표 제외
+                "집행률" not in h_str_ext_full          # 결산표 제외
+            )
+            if is_func_table:
+                n_cols = len(rows[0])
+                combined = [
+                    (str(rows[0][i] or "") + str(rows[1][i] if len(rows) > 1 and i < len(rows[1]) else ""))
+                    .replace('\n', '').replace(' ', '')
+                    for i in range(n_cols)
+                ]
+                y2, y1, y0 = self.base_year - 2, self.base_year - 1, self.base_year
+
+                # 연도 anchor: 헤더에서 연도 숫자가 처음 등장하는 열 인덱스
+                anchors: Dict[int, int] = {}
+                for i, h in enumerate(combined):
+                    for yr in [y2, y1, y0]:
+                        if str(yr) in h and yr not in anchors:
+                            anchors[yr] = i
+
+                # 컬럼 인덱스 결정
+                # y2: anchor+2(집행액), y1: anchor+1(예산현액), y0: 마지막 컬럼(예산)
+                idx_y2 = anchors.get(y2, -1) + 2 if y2 in anchors else -1
+                idx_y1 = anchors.get(y1, -1) + 1 if y1 in anchors else -1
+                idx_y0 = anchors.get(y0, n_cols - 1) if y0 in anchors else n_cols - 1
+
+                BULLETS = set('·․・\u00b7\uff65·')
+
+                def _split_sub_names(raw: str) -> List[str]:
+                    """병합 셀 col[0]에서 내역사업명 목록 추출 (가운뎃점·기호 기준 분리)"""
+                    names, buf = [], ""
+                    for line in raw.split('\n'):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        first = line[0] if line else ""
+                        # 합계/소계 행 skip
+                        if first in ('○', 'ο', 'O') and any(k in line for k in ['합계', '소계', '총계']):
+                            continue
+                        if first in BULLETS or line.startswith('·') or line.startswith('·'):
+                            if buf:
+                                names.append(buf.strip())
+                            buf = re.sub(r'^[·\-\s\.]+', '', line).strip()
+                        else:
+                            buf += (" " + line) if buf else line
+                    if buf:
+                        names.append(buf.strip())
+                    return [re.sub(r'^[·\-\s\.]+', '', n) for n in names if n]
+
+                def _split_amounts(raw: str, skip_first: bool = True) -> List[str]:
+                    """병합 셀 금액 컬럼 분해 (첫 줄=합계이므로 기본 제외)"""
+                    vals = [v.strip() for v in str(raw or "").split('\n') if v.strip()]
+                    return vals[1:] if skip_first and len(vals) > 1 else vals
+
+                # 데이터 행(병합 셀)은 rows[2] (row[0]=헤더1, row[1]=헤더2, row[2]=데이터)
+                for r in rows[2:]:
+                    col0 = str(r[0] or "")
+                    # 합계 행만 있거나 내역사업명이 없으면 skip
+                    if not col0.strip():
+                        continue
+
+                    names = _split_sub_names(col0)
+                    if not names:
+                        continue
+
+                    y2_amts = _split_amounts(r[idx_y2]) if idx_y2 != -1 and idx_y2 < len(r) else []
+                    y1_amts = _split_amounts(r[idx_y1]) if idx_y1 != -1 and idx_y1 < len(r) else []
+                    y0_amts = _split_amounts(r[idx_y0]) if idx_y0 < len(r) else []
+
+                    for i, name in enumerate(names):
+                        clean_name = re.sub(r'^[·\-\s\.]+', '', name).strip()
+                        if not clean_name or any(k in clean_name for k in ["합계", "소계", "총계"]):
+                            continue
+                        if clean_name not in sub_budget_map:
+                            sub_budget_map[clean_name] = {}
+                        val_y2 = self._clean_num(y2_amts[i]) if i < len(y2_amts) else 0.0
+                        val_y1 = self._clean_num(y1_amts[i]) if i < len(y1_amts) else 0.0
+                        val_y0 = self._clean_num(y0_amts[i]) if i < len(y0_amts) else 0.0
+                        # 모든 금액이 0이면 내역사업이 아닌 잡음 행 → skip
+                        if val_y2 == 0.0 and val_y1 == 0.0 and val_y0 == 0.0:
+                            continue
+                        if val_y2 > 0: sub_budget_map[clean_name][f"budget_{y2}"] = val_y2
+                        if val_y1 > 0: sub_budget_map[clean_name][f"budget_{y1}"] = val_y1
+                        if val_y0 > 0: sub_budget_map[clean_name][f"budget_{y0}"] = val_y0
 
             # 💡 [7] 성과지표 KPI (독립된 if문)
             if "지표명" in h_str and "목표" in h_str:
@@ -299,16 +387,26 @@ class BudgetParser:
         y2, y1, y0 = self.base_year-2, self.base_year-1, self.base_year
         for name in all_keys:
             clean_name = re.sub(r'^[·\-\s]*', '', name)
+            if not clean_name:
+                continue
             d = dept_map.get(name, {"managing_dept": "", "implementing_agency": ""})
-            b = budget_map.get(name, {f"budget_{y2}": 0.0, f"budget_{y1}": 0.0, f"budget_{y0}": 0.0})
-            
-            res["sub_projects"].append({
-                "parent_id": res.get("code", ""), 
-                "name": clean_name,
-                f"budget_{y2}": b.get(f"budget_{y2}", 0.0),
-                f"budget_{y1}": b.get(f"budget_{y1}", 0.0),
-                f"budget_{y0}": b.get(f"budget_{y0}", 0.0)
-            })
+            b = budget_map.get(name, {})
+            val_y2 = b.get(f"budget_{y2}", 0.0)
+            val_y1 = b.get(f"budget_{y1}", 0.0)
+            val_y0 = b.get(f"budget_{y0}", 0.0)
+
+            # 예산이 하나라도 있는 경우에만 sub_projects에 추가
+            # (dept_map에만 있고 기능별 내역표에 없는 본사업명 잡음 제거)
+            if val_y2 > 0 or val_y1 > 0 or val_y0 > 0:
+                res["sub_projects"].append({
+                    "parent_id": res.get("code", ""),
+                    "name": clean_name,
+                    f"budget_{y2}": val_y2,
+                    f"budget_{y1}": val_y1,
+                    f"budget_{y0}": val_y0,
+                })
+
+            # project_managers는 예산 유무와 무관하게 항상 추가 (관리자 정보 보존)
             res["project_managers"].append({
                 "parent_code": res.get("code", ""),
                 "sub_project": clean_name,

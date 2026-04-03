@@ -68,8 +68,9 @@ class PdfToJsonConverter:
                             pass
 
                     # 구버전 파서 호환을 위해 text, tables 필드 생성 + 순서 보존형 blocks 추가
+                    # BUG-FIX: find_tables() 이중 호출 제거 → 첫 번째 결과(tables) 재사용
                     full_text = page.extract_text() or ""
-                    raw_tables = [t.extract() for t in page.find_tables()]
+                    raw_tables = [t.extract() for t in tables]
                     
                     data["pages"].append({
                         "page_number": i + 1,
