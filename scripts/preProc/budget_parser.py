@@ -10,13 +10,11 @@ logger = logging.getLogger(__name__)
 
 class BudgetParser:
     def __init__(self, config_path: str):
-        """설정 로드 및 전역 변수 초기화"""
         with open(config_path, 'r', encoding='utf-8') as f:
             self.config = yaml.safe_load(f)
         self.base_year = self.config.get('years', {}).get('base_year', 2026)
 
     def parse(self, input_path: str, output_path: str):
-        """파일 단위 파싱 오케스트레이션"""
         with open(input_path, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
             
@@ -38,44 +36,34 @@ class BudgetParser:
         logger.info(f"✅ 파싱 완료 ({len(results)}건): {out_file.name}")
 
     def _parse_single_project(self, project_data: dict) -> Dict[str, Any]:
-        """단일 사업 데이터(Chunk)에서 54개 키 전수 추출"""
         text = project_data.get("text", "")
         tables = project_data.get("tables", [])
         pages = project_data.get("pages", [])
         
-        # 1. 빈 그릇(초기값) 생성 (template.json 계층 구조 반영)
         res = self._init_result()
         if pages:
-            res["page_start"] = pages[0]
-            res["page_end"] = pages[-1]
+            res["page_start"], res["page_end"] = pages[0], pages[-1]
 
         # -------------------------------------------------------------
-        # 2. 메타데이터 (최상단 '사 업 명' 앵커 기준 추출)
+        # 1. 메타데이터: 사업명 및 코드 (오탐 방지)
         # -------------------------------------------------------------
-        title_anchor = re.search(r'사\s*업\s*명\s*[\r\n]+([^\n□]+)', text)
-        if title_anchor:
-            raw_title_line = title_anchor.group(1).strip() 
-            # 고객 규칙: 숫자 4자리-3자리 규격만 코드로 인정
-            code_match = re.search(r'\((\d{4}-\d{3})\)', raw_title_line)
-            if code_match:
-                res["code"] = code_match.group(1)
-                # 앞의 순번과 뒤의 코드 제거하여 순수 사업명 확보
-                name_clean = raw_title_line.replace(code_match.group(0), '')
-                name_clean = re.sub(r'^\s*(?:\(\d+\)|\[\d+\]|\d+\.)\s*', '', name_clean)
-                res["project_name"] = name_clean.strip()
-                # id 생성 (Validation 필수 항목)
-                res["id"] = f"{self.base_year}_{res['code']}"
+        title_match = re.search(r'(?:^|\n)\s*사\s*업\s*명\s*[:：]?\s*[\r\n]*\s*(?:\(\d+\)|\[\d+\]|\d+\.)?\s*([^\n]+?)\s*\((\d{4}-\d{3,4})\)', text)
+        if title_match:
+            res["project_name"] = title_match.group(1).strip()
+            res["code"] = title_match.group(2).strip()
+            res["id"] = f"{self.base_year}_{res['code']}"
 
-        # R&D, 정보화 판별
         if res["project_name"]:
             if "R&D" in res["project_name"].upper(): res["is_rnd"] = True
             if "정보화" in res["project_name"]: res["is_informatization"] = True
        
         # -------------------------------------------------------------
-        # 3. 2D 표(Table) 시그니처 및 인덱스 기반 추출 (원본 로직 보존)
+        # 2. 2D 표(Table) 전수 파싱 (독립 파싱 로직 적용)
         # -------------------------------------------------------------
         sub_dept_map = {}
         sub_budget_map = {}
+        # 동그라미, 체크 기호를 모두 포함하는 강력한 정규식 (소문자o 오탐지 방지 적용 완료)
+        chk_pattern = re.compile(r'[OΟV☑■o○●〇v✔]')
 
         for t in tables:
             rows = t.get('rows', []) if isinstance(t, dict) else t
@@ -83,17 +71,18 @@ class BudgetParser:
             
             clean_row0 = [str(c).replace(" ", "").replace("\n", "").strip() if c else "" for c in rows[0]]
             h_str = "".join(clean_row0)
+            
+            # 💡 [핵심] 헤더가 1행과 2행에 쪼개져 있는 경우를 대비한 확장 검색 문자열
+            h_str_extended = "".join([str(c).replace(" ", "").replace("\n", "") for r in rows[:2] for c in r if c])
 
-            # [표 1] 사업 코드 정보 (회계, 소관, 분야 등)
+            # [1] 기본 메타데이터 (이 두 개는 보통 표가 명확히 나뉘어 있으므로 if-elif 체인 유지)
             if "회계" in h_str and "소관" in h_str:
                 res["account_type"] = self._get_vertical_val(rows, clean_row0, "회계", 1, 2)
                 res["department"] = self._get_vertical_val(rows, clean_row0, "소관", 1, 2)
                 res["division"] = self._get_vertical_val(rows, clean_row0, "실국(기관)", 1, 2)
                 res["field"] = self._get_vertical_val(rows, clean_row0, "분야", 1, 1)
                 res["sector"] = self._get_vertical_val(rows, clean_row0, "부문", 1, 1)
-                res["name"] = f"{res['department']}_{res['project_name']}"
-
-            # [표 2] 사업 코드 정보 (프로그램 등 - 계층 구조 반영)
+                
             elif "프로그램" in h_str and "단위사업" in h_str:
                 res["program"]["code"] = self._get_vertical_val(rows, clean_row0, "프로그램", 1, 1)
                 res["program"]["name"] = self._get_vertical_val(rows, clean_row0, "프로그램", 2, 2)
@@ -102,30 +91,36 @@ class BudgetParser:
                 res["detail_project"]["code"] = self._get_vertical_val(rows, clean_row0, "세부사업", 1, 1)
                 res["detail_project"]["name"] = self._get_vertical_val(rows, clean_row0, "세부사업", 2, 2)
 
-            # [표 3] 사업 성격 (신규/계속/완료)
-            elif "신규" in h_str and "계속" in h_str:
-                chk_pattern = re.compile(r'[OΟV☑■o]')
+            # 💡 [2] 상태값 (여기서부터 모두 독립된 if문으로 사슬을 끊음)
+            if "신규" in h_str_extended and "계속" in h_str_extended:
+                header_combined = [str(rows[0][i] or "") + str(rows[1][i] if len(rows)>1 else "") for i in range(len(rows[0]))]
                 for key in ["신규", "계속", "완료"]:
-                    if key in clean_row0:
-                        idx = clean_row0.index(key)
-                        if idx < len(rows[1]) and rows[1][idx] and chk_pattern.search(str(rows[1][idx])):
-                            res["status"] = key
-                            break
+                    idx = self._find_idx(header_combined, key)
+                    if idx != -1:
+                        for r_idx in range(1, min(4, len(rows))):
+                            # None이 "None" 문자열이 되어 소문자 'o'로 오탐지되는 버그 방지
+                            val = str(rows[r_idx][idx] or "")
+                            if val and chk_pattern.search(val):
+                                res["status"] = key
+                                break
+                    if res["status"]: break
 
-            # [표 4] 사업 지원 형태 및 지원율
-            elif "출연" in h_str and "보조" in h_str:
-                chk_pattern = re.compile(r'[OΟV☑■o]')
+            # 💡 [3] 지원 형태 (독립된 if문, "율" 제외 로직 적용)
+            if "출연" in h_str and "보조" in h_str:
                 for key in ["직접", "출자", "출연", "보조", "융자"]:
-                    if key in clean_row0:
-                        idx = clean_row0.index(key)
-                        if idx < len(rows[1]) and rows[1][idx] and chk_pattern.search(str(rows[1][idx])):
-                            res["support_type"] = key # 단일 String 규격
-                            break
-                res["subsidy_rate"] = self._get_vertical_val(rows, clean_row0, "국고보조율(%)", 1, 1)
-                res["loan_rate"] = self._get_vertical_val(rows, clean_row0, "융자율(%)", 1, 1)
+                    idx = self._find_idx(clean_row0, key, exclude="율")
+                    if idx != -1:
+                        for r_idx in range(1, min(4, len(rows))):
+                            val = str(rows[r_idx][idx] or "")
+                            if val and chk_pattern.search(val):
+                                if key not in res["support_type"]:
+                                    res["support_type"].append(key)
+                                break
+                res["subsidy_rate"] = self._clean_num(self._get_vertical_val(rows, clean_row0, "국고보조율(%)", 1, 1))
+                res["loan_rate"] = self._clean_num(self._get_vertical_val(rows, clean_row0, "융자율(%)", 1, 1))
 
-            # [표 5] 사업 소관부처 및 시행주체 (내역사업 데이터)
-            elif "소관부처" in h_str or "사업시행주체" in h_str:
+            # 💡 [4] 소관부처 및 시행주체 (독립된 if문)
+            if "소관부처" in h_str or "사업시행주체" in h_str:
                 current_sub_name = ""
                 for r in rows[1:]:
                     col0 = str(r[0]).replace('\n', ' ').strip() if r[0] else ""
@@ -136,34 +131,33 @@ class BudgetParser:
                         current_sub_name = col0
                         if current_sub_name not in sub_dept_map:
                             sub_dept_map[current_sub_name] = {"managing_dept": "", "implementing_agency": ""}
-                    
                     if current_sub_name:
-                        if "소관부처" in col1:
-                            sub_dept_map[current_sub_name]["managing_dept"] = col2
-                        elif "사업시행주체" in col1 or "시행기관" in col1:
-                            sub_dept_map[current_sub_name]["implementing_agency"] = col2
+                        if "소관부처" in col1: sub_dept_map[current_sub_name]["managing_dept"] = col2
+                        elif "사업시행주체" in col1 or "시행기관" in col1: sub_dept_map[current_sub_name]["implementing_agency"] = col2
 
                 if sub_dept_map and not res["implementing_agency"]:
                     first_sub = list(sub_dept_map.keys())[0]
                     res["implementing_agency"] = sub_dept_map[first_sub].get("implementing_agency", "")
 
-            # [표 6] 지출계획 총괄표 (budget 객체 내 매핑)
-            elif "결산" in h_str and ("본예산" in h_str or "요구안" in h_str):
+            # 💡 [5] 지출계획 총괄표 병합 셀 처리 (독립된 if문)
+            if "결산" in h_str and "예산" in h_str and "증감" in h_str:
+                header_combined = [str(rows[0][i] or "") + str(rows[1][i] if len(rows)>1 else "") for i in range(len(rows[0]))]
                 idx_map = {
-                    "2024_settlement": self._find_idx(clean_row0, "결산"),
-                    "2025_original": self._find_idx(clean_row0, "본예산", exclude="B"),
-                    "2026_request": self._find_idx(clean_row0, "요구안"),
-                    "2026_budget": self._find_idx(clean_row0, ["본예산(B)", "정부안"])
+                    f"{self.base_year-2}_settlement": self._find_idx(header_combined, "결산"),
+                    f"{self.base_year-1}_original": self._find_idx(header_combined, "본예산", exclude="B"),
+                    f"{self.base_year-1}_supplementary": self._find_idx(header_combined, "추경"),
+                    f"{self.base_year}_request": self._find_idx(header_combined, "요구안"),
+                    f"{self.base_year}_budget": self._find_idx(header_combined, ["본예산(B)", "정부안"])
                 }
                 for r in rows[1:]:
-                    if sum(1 for c in r if re.search(r'\d', str(c))) >= 3:
+                    if sum(1 for c in r if re.search(r'\d', str(c))) >= 3 and not any(k in str(r[0]) for k in ["사업명", "결산", "예산"]):
                         for k, idx in idx_map.items():
                             if idx != -1 and idx < len(r):
                                 res["budget"][k] = self._clean_num(r[idx])
                         break
             
-            # [표 7] 기능별(내역사업별) 계획 내역
-            elif "합계" in h_str or "기능별" in h_str or "내역사업" in h_str:
+            # 💡 [6] 내역사업 계획 내역 (독립된 if문)
+            if "합계" in h_str or "기능별" in h_str or "내역사업" in h_str:
                 header_combined = [str(rows[0][i] or "") + str(rows[1][i] if len(rows)>1 else "") for i in range(len(rows[0]))]
                 idx_y2 = self._find_idx(header_combined, [f"{self.base_year-2}", "결산", "집행액"])
                 idx_y1 = self._find_idx(header_combined, [f"{self.base_year-1}", "본예산", "현액"])
@@ -174,25 +168,31 @@ class BudgetParser:
                     if not name or any(k in name for k in ["합계", "소계", "총계"]): continue
                     clean_name = re.sub(r'^[·\-\s]*', '', name)
                     
-                    sub_budget_map[clean_name] = {
-                        "budget_2024": self._clean_num(r[idx_y2]) if idx_y2 != -1 and idx_y2 < len(r) else 0.0,
-                        "budget_2025": self._clean_num(r[idx_y1]) if idx_y1 != -1 and idx_y1 < len(r) else 0.0,
-                        "budget_2026": self._clean_num(r[idx_y0]) if idx_y0 != -1 and idx_y0 < len(r) else 0.0,
-                    }
+                    if clean_name not in sub_budget_map:
+                        sub_budget_map[clean_name] = {}
+                        
+                    val_y2 = self._clean_num(r[idx_y2]) if idx_y2 != -1 and idx_y2 < len(r) else 0.0
+                    val_y1 = self._clean_num(r[idx_y1]) if idx_y1 != -1 and idx_y1 < len(r) else 0.0
+                    val_y0 = self._clean_num(r[idx_y0]) if idx_y0 != -1 and idx_y0 < len(r) else 0.0
+                    
+                    if val_y2 > 0: sub_budget_map[clean_name][f"budget_{self.base_year-2}"] = val_y2
+                    if val_y1 > 0: sub_budget_map[clean_name][f"budget_{self.base_year-1}"] = val_y1
+                    if val_y0 > 0: sub_budget_map[clean_name][f"budget_{self.base_year}"] = val_y0
 
-            # [표 8] 성과지표 (KPI)
-            elif "지표명" in h_str and "목표" in h_str:
+            # 💡 [7] 성과지표 KPI (독립된 if문)
+            if "지표명" in h_str and "목표" in h_str:
                 idx_name = self._find_idx(clean_row0, "지표명")
                 idx_target = self._find_idx(clean_row0, ["목표", f"{self.base_year}"])
                 for r in rows[1:]:
                     if idx_name != -1 and idx_name < len(r) and r[idx_name]:
                         res["kpi"].append({
+                            "parent_code": res.get("code", ""),
                             "indicator_name": str(r[idx_name]).replace('\n', ' ').strip(),
                             "target_value": str(r[idx_target]).replace('\n', ' ').strip() if idx_target != -1 and idx_target < len(r) else ""
                         })
 
-            # [표 9] 연도별 사업추진 경과 (History)
-            elif "연도" in h_str and ("경과" in h_str or "내용" in h_str):
+            # 💡 [8] 연도별 사업추진 경과 History (독립된 if문)
+            if "연도" in h_str and ("경과" in h_str or "내용" in h_str):
                 idx_year = self._find_idx(clean_row0, "연도")
                 idx_desc = self._find_idx(clean_row0, ["경과", "내용"])
                 for r in rows[1:]:
@@ -200,75 +200,117 @@ class BudgetParser:
                         y_val = self._clean_num(r[idx_year])
                         if y_val > 0:
                             res["history"].append({
+                                "parent_code": res.get("code", ""),
                                 "year": int(y_val),
                                 "description": str(r[idx_desc]).replace('\n', ' ').strip() if idx_desc != -1 and idx_desc < len(r) else ""
                             })
 
-            # [표 10] 최근 4년간 결산내역 (Yearly Budgets)
-            elif "결산액" in h_str or "집행액" in h_str:
+            # 💡 [9] 결산액 Yearly Budgets (독립된 if문)
+            if "결산액" in h_str or "집행액" in h_str:
                 idx_year = self._find_idx(clean_row0, ["연도", "구분"])
                 idx_amt = self._find_idx(clean_row0, ["결산액", "집행액"])
                 for r in rows[1:]:
                     if idx_year != -1 and idx_year < len(r) and str(r[idx_year]).strip().isdigit():
                         res["yearly_budgets"].append({
+                            "parent_code": res.get("code", ""),
                             "year": int(str(r[idx_year]).strip()),
-                            "amount": self._clean_num(r[idx_amt]) if idx_amt != -1 and idx_amt < len(r) else 0.0
+                            "settlement_amount": self._clean_num(r[idx_amt]) if idx_amt != -1 and idx_amt < len(r) else 0.0
                         })
 
-        # 내역사업 조립 (1:N 데이터 병합)
         self._assemble_sub_data(res, sub_dept_map, sub_budget_map)
 
         # -------------------------------------------------------------
-        # 4. 텍스트 목차 슬라이싱 (서술형 데이터 블록 추출)
+        # 3. 텍스트 목차 슬라이싱
         # -------------------------------------------------------------
-        res["purpose"] = self._slice_block(text, ["사업목적·내용", "사업개요"], ["사업근거", "주요내용"])
-        res["description"] = res["purpose"]
-        res["legal_basis"] = self._slice_block(text, ["사업근거", "지원근거", "사업개요"], ["주요내용"])
-        res["effectiveness"] = self._slice_block(text, ["기대효과", "사업효과"], ["타당성조사", "각종 평가"])
-        res["evaluations"] = self._slice_block(text, ["타당성조사", "각종 평가"], ["최근 4년간 결산내역", "결산표"])
+        res["purpose"] = self._slice_block(text, ["사업목적", "사업개요", "목적및내용"], ["법령상근거", "사업근거", "추진경위", "주요내용", "사업규모"])
+        res["legal_basis"] = self._slice_block(text, ["법령상근거", "사업근거", "추진경위"], ["주요내용", "사업규모", "산출근거", "산출내역"])
         
-        main_content = self._slice_block(text, ["주요내용"], ["산출 근거", "기대효과"])
+        main_content = self._slice_block(text, ["주요내용", "사업내용", "사업규모"], ["산출근거", "산출내역", "사업효과", "기대효과"])
+        res["description"] = main_content
+        
+        res["budget_calculation"] = self._slice_block(text, ["산출근거", "산출내역"], ["사업효과", "기대효과", "타당성조사", "각종평가", "집행절차"])
+        res["effectiveness"] = self._slice_block(text, ["사업효과", "기대효과"], ["타당성조사", "집행절차", "각종평가", "결산내역"])
+        res["evaluations"] = self._slice_block(text, ["각종평가", "타당성조사", "국회지적"], ["결산내역", "결산표"])
+        
         self._extract_inline_meta(main_content or text, res)
         
-        # 수혜자 및 집행방법 (20자 룰)
-        res["execution_detail"]["recipients"] = self._slice_block(main_content or text, ["사업수혜자", "정책수혜자"], ["2026년도", "산출근거", "기대효과"])
-        method_text = self._slice_block(text, ["사업 집행절차", "집행절차"], ["각종 평가", "결산내역"])
+        rec_text = self._slice_block(main_content or text, ["사업수혜자", "정책수혜자"], ["보조율", "지원비율", "법적근거", "산출근거", "산출내역"])
+        res["execution_detail"]["recipients"] = rec_text.replace('\n', ' ').strip()
+        
+        method_text = self._slice_block(text, ["사업집행절차", "집행절차"], ["각종평가", "결산내역"])
         if method_text:
-            res["execution_detail"]["method"] = method_text.replace('\n', ' ').strip()[:20]
+            res["execution_detail"]["method"] = method_text.replace('\n', ' ').strip()[:50]
 
-        # -------------------------------------------------------------
-        # 5. NLP 키워드 검사 (AI기술, R&D단계, 도메인)
-        # -------------------------------------------------------------
         res["ai_tech_types"] = self._match_keywords(text, ["머신러닝", "딥러닝", "자연어", "비전", "생성형"])
         rnd_match = self._match_keywords(text, ["기초연구", "응용연구", "개발연구"])
         res["rnd_stage"] = rnd_match[0] if rnd_match else ""
         res["ai_domains"] = self._match_keywords(text, ["국방", "의료", "제조", "교육", "금융", "행정"])
-
-        # -------------------------------------------------------------
-        # 6. 교차 검증 (Cross-Validation)
-        # -------------------------------------------------------------
-        self._cross_validate(res, main_content or "", sub_dept_map, sub_budget_map)
 
         return res
 
     # =================================================================
     # 내부 유틸리티 및 헬퍼 메서드
     # =================================================================
+    def _is_heading(self, text: str, match_start: int, match_end: int) -> bool:
+        nl_start = text.rfind('\n', 0, match_start)
+        line_start = nl_start + 1 if nl_start != -1 else 0
+        nl_end = text.find('\n', match_end)
+        line_end = nl_end if nl_end != -1 else len(text)
+        
+        line = text[line_start:line_end].strip()
+        line = re.sub(r'^-\s*\d+\s*-\s*', '', line).strip()
+        
+        if len(line) > 60: return False
+        if line.endswith(('다.', '다', '며,', '고,')): return False
+        if len(line) < 40: return True
+        if re.match(r'^(?:□|ㅇ|■|○|●|①|②|③|④|⑤|\d+\)|\d+\.|가\.|나\.|다\.|-)', line): return True
+        
+        return False
+
+    def _slice_block(self, text: str, start_keys: List[str], end_keys: List[str]) -> str:
+        if not text: return ""
+        start_idx = -1
+        for sk in start_keys:
+            sk_pattern = r'\s*'.join(list(sk.replace(" ", "")))
+            for m in re.finditer(sk_pattern, text):
+                if self._is_heading(text, m.start(), m.end()):
+                    idx = m.end()
+                    if start_idx == -1 or idx < start_idx:
+                        start_idx = idx
+                    break
+        if start_idx == -1: return ""
+        
+        end_idx = len(text)
+        for ek in end_keys:
+            ek_pattern = r'\s*'.join(list(ek.replace(" ", "")))
+            for m in re.finditer(ek_pattern, text[start_idx:]):
+                abs_start = start_idx + m.start()
+                abs_end = start_idx + m.end()
+                if self._is_heading(text, abs_start, abs_end):
+                    nl_pos = text.rfind('\n', start_idx, abs_start)
+                    split_pos = nl_pos if nl_pos != -1 else abs_start
+                    if split_pos < end_idx:
+                        end_idx = split_pos
+                    break
+        return text[start_idx:end_idx].strip()
+
     def _assemble_sub_data(self, res, dept_map, budget_map):
         all_keys = set(dept_map.keys()) | set(budget_map.keys())
+        y2, y1, y0 = self.base_year-2, self.base_year-1, self.base_year
         for name in all_keys:
             clean_name = re.sub(r'^[·\-\s]*', '', name)
             d = dept_map.get(name, {"managing_dept": "", "implementing_agency": ""})
-            b = budget_map.get(name, {"budget_2024": 0.0, "budget_2025": 0.0, "budget_2026": 0.0})
+            b = budget_map.get(name, {f"budget_{y2}": 0.0, f"budget_{y1}": 0.0, f"budget_{y0}": 0.0})
             
             res["sub_projects"].append({
-                "parent_id": res["code"], # 내역사업 내부로 parent_id 이동
+                "parent_id": res.get("code", ""), 
                 "name": clean_name,
-                "budget_2024": b["budget_2024"],
-                "budget_2025": b["budget_2025"],
-                "budget_2026": b["budget_2026"]
+                f"budget_{y2}": b.get(f"budget_{y2}", 0.0),
+                f"budget_{y1}": b.get(f"budget_{y1}", 0.0),
+                f"budget_{y0}": b.get(f"budget_{y0}", 0.0)
             })
             res["project_managers"].append({
+                "parent_code": res.get("code", ""),
                 "sub_project": clean_name,
                 "managing_dept": d["managing_dept"],
                 "implementing_agency": d["implementing_agency"],
@@ -297,63 +339,57 @@ class BudgetParser:
         clean = re.sub(r'[^\d.-]', '', str(val).split('\n')[0])
         return float(clean) if clean and clean not in ['-', '.'] else 0.0
 
-    def _slice_block(self, text: str, start_keys: List[str], end_keys: List[str]) -> str:
-        if not text: return ""
-        start_idx = -1
-        for sk in start_keys:
-            match = re.search(rf'^\s*[□ㅇ\-\d\.]*\s*{sk}', text, re.MULTILINE)
-            if match:
-                start_idx = match.end()
-                break
-        if start_idx == -1: return ""
-        end_idx = len(text)
-        for ek in end_keys:
-            match = re.search(rf'^\s*[□ㅇ\-\d\.]*\s*{ek}', text[start_idx:], re.MULTILINE)
-            if match:
-                temp_end = start_idx + match.start()
-                if temp_end < end_idx: end_idx = temp_end
-        return text[start_idx:end_idx].strip()
-
     def _extract_inline_meta(self, text: str, res: dict):
+        # 1. 총사업비 추출
         cost_m = re.search(r'총사업비\s*[:：]?\s*([^\n]+)', text)
         if cost_m:
             nums = re.findall(r'([\d,]+)(?:백만원|억원)', cost_m.group(1).replace(' ', ''))
             if nums: res["total_cost"]["total"] = self._clean_num(nums[0])
         
-        y_match = re.search(r'(?:사업기간|기간).*?(\d{4})년?\s*~\s*([^ \n]+)', text)
+        # 2. 사업기간 추출
+        y_match = re.search(r'(?:사업기간|기간).*?(\d{2,4})년?\s*~\s*([^ \n]+)', text)
         if y_match:
-            res["project_period"]["start_year"] = y_match.group(1)
+            sy_str = y_match.group(1)
+            if len(sy_str) == 2:
+                sy_int = int(sy_str)
+                sy = 2000 + sy_int if sy_int < 50 else 1900 + sy_int
+            else:
+                sy = int(sy_str)
+            res["project_period"]["start_year"] = sy
             res["project_period"]["end_year"] = y_match.group(2).replace('년', '').strip()
+
+        # 💡 [핵심 패치] 3. 텍스트 본문에서 시행주체 직접 추출 (표에서 못 찾았을 경우 완벽 방어)
+        if not res.get("implementing_agency"):
+            agency_match = re.search(r'사업시행주체\s*[:：]?\s*([^\n]+)', text)
+            if agency_match:
+                # 불필요한 특수문자 제거 후 깔끔하게 저장
+                res["implementing_agency"] = re.sub(r'^[^\w가-힣]+', '', agency_match.group(1)).strip()
 
     def _match_keywords(self, text: str, keywords: List[str]) -> List[str]:
         return [k for k in keywords if k in text]
 
-    def _cross_validate(self, res: dict, main_text: str, dept_map: dict, budget_map: dict):
-        errors = []
-        code_id = res.get("code", "Unknown")
-        if res["unit_project"]["code"] and res["detail_project"]["code"]:
-            expected = f"{res['unit_project']['code']}-{res['detail_project']['code']}"
-            if code_id != expected: errors.append(f"코드불일치 ({code_id} vs {expected})")
-        if errors: logger.warning(f"⚠️ 검증 실패 [{code_id}]: {', '.join(errors)}")
-
     def _init_result(self) -> Dict[str, Any]:
-        """template.json 규격에 맞춘 54개 키의 계층적 초기 구조"""
+        y2, y1, y0 = self.base_year-2, self.base_year-1, self.base_year
         return {
-            "id": None, "name": "", "project_name": "", "code": "", "department": "", "division": "",
-            "account_type": "", "field": None, "sector": None,
+            "id": None, "project_name": "", "code": "", "department": "", "division": "",
+            "implementing_agency": "", "account_type": "", "field": None, "sector": None,
             "program": {"code": "", "name": ""},
             "unit_project": {"code": "", "name": ""},
             "detail_project": {"code": "", "name": ""},
-            "status": "계속", "support_type": "출연", "implementing_agency": "",
-            "subsidy_rate": "0%", "loan_rate": "0%", "is_rnd": False, "is_informatization": False,
-            "project_managers": [],
-            "budget": {"2024_settlement": 0.0, "2025_original": 0.0, "2026_request": 0.0, "2026_budget": 0.0},
+            "status": "", "support_type": [],
+            "is_rnd": False, "is_informatization": False,
             "project_period": {"start_year": None, "end_year": None, "duration": None, "raw": None},
-            "total_cost": {"total": None, "government": None, "raw": None},
-            "sub_projects": [], "purpose": "", "description": "", "legal_basis": "",
-            "keywords": [], "page_start": None, "page_end": None, "kpi": [], "history": [], "yearly_budgets": [],
-            "ai_domains": ["디지털전환(AX)"], "effectiveness": "", "evaluations": "",
-            "budget_calculation": [], "execution_detail": {"method": "", "recipients": ""}
+            "total_cost": {"total": 0.0, "government": 0.0, "raw": None},
+            "budget": {
+                f"{y2}_settlement": 0.0, f"{y1}_original": 0.0,
+                f"{y1}_supplementary": 0.0, f"{y0}_request": 0.0, f"{y0}_budget": 0.0
+            },
+            "purpose": "", "description": "", "legal_basis": "",
+            "ai_tech_types": [], "rnd_stage": "", "ai_domains": [],
+            "page_start": None, "page_end": None, "subsidy_rate": 0.0, "loan_rate": 0.0,
+            "execution_detail": {"method": "", "recipients": ""},
+            "budget_calculation": "", "effectiveness": "", "evaluations": "",
+            "sub_projects": [], "project_managers": [], "kpi": [], "history": [], "yearly_budgets": []
         }
 
 if __name__ == "__main__":

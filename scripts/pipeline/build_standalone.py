@@ -1,12 +1,21 @@
-ROOT = Path(__file__).parent.parent.parent
+from pathlib import Path
+import sys, re
+import sys
+from pathlib import Path
+
+# 1. 시스템 길 터주기 (가장 먼저 실행되어야 함)
+ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
-from config import path_config
+
+# 2. 이제 파이썬이 최상위 폴더를 아니까, 마음 편하게 중앙 통제소(config)를 부릅니다.
+from config.path_config import LOGS_DIR, INPUT_DIR, OUTPUT_DIR, RAW_DIR, MERGED_JSON_PATH, WEB_DIR
 from scripts.pipeline._years import get_years
+
 
 Y = get_years()
 
 def build_standalone():
-    index_path = path_config.WEB_DIR / "index.html"
+    index_path = WEB_DIR / "index.html"
     if not index_path.exists():
         print(f"❌ {index_path.name} 파일이 없습니다.")
         return
@@ -15,7 +24,7 @@ def build_standalone():
         html = f.read()
 
     # WEB_DIR 정의
-    web_dir = path_config.WEB_DIR
+    web_dir = WEB_DIR
     if not index_path.exists():
         print(f"❌ {index_path.name} 파일이 없습니다.")
         return
@@ -54,7 +63,7 @@ def build_standalone():
     html = re.sub(r'<script[^>]*src="([^"]+\.js)"[^>]*>\s*</script>', replace_js, html, flags=re.IGNORECASE)
 
     # 결과물 저장
-    out_dir = path_config.OUTPUT_DIR
+    out_dir = OUTPUT_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / f"KAIB{Y['base_year']}_Standalone.html"
     with open(out_file, "w", encoding="utf-8") as f:

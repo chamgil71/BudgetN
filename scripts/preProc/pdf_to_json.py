@@ -1,180 +1,106 @@
-import argparse
-import sys
-import logging
-import json
-import yaml
 import pdfplumber
-
+import json
+import logging
+import argparse
+from typing import Dict, Any, Union
 from pathlib import Path
-from typing import List, Optional
-from pydantic import BaseModel
 
-
-# -------------------------
-# Logging 설정
-# -------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-7s | %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
 logger = logging.getLogger(__name__)
 
-
-# -------------------------
-# Pydantic Models
-# -------------------------
-class TableModel(BaseModel):
-    rows: List[List[Optional[str]]]
-
-
-class PageModel(BaseModel):
-    page_number: int
-    text: Optional[str]
-    tables: List[TableModel] = []
+# 💡 [해결 1] main_cli.py가 Pydantic 모델을 기대하는 것을 충족시키기 위한 래퍼 클래스
+class DocumentResponse:
+    def __init__(self, data: dict):
+        self._data = data
+        
+    def dict(self):
+        return self._data
+        
+    def model_dump(self):
+        return self._data
 
 
-class DocumentModel(BaseModel):
-    pages: List[PageModel]
-
-
-# -------------------------
-# Converter Class
-# -------------------------
 class PdfToJsonConverter:
-
     @staticmethod
-    def extract_data(pdf_path: Path) -> Optional[DocumentModel]:
-        logger.info(f"📄 PDF 파싱 시작: {pdf_path.name}")
-
-        pages = []
-
+    def extract_data(pdf_path: Union[str, Path]) -> DocumentResponse:
+        """PDF에서 페이지별로 텍스트와 표를 Y좌표 기반 순서대로(Blocks) 추출"""
+        pdf_path_str = str(pdf_path)
+        data = {"source": pdf_path_str, "pages": []}
+        
         try:
-            with pdfplumber.open(pdf_path) as pdf:
-                total = len(pdf.pages)
-                logger.info(f"총 페이지 수: {total}")
-
-                for i, page in enumerate(pdf.pages, start=1):
-                    logger.info(f"[{i}/{total}] 페이지 처리 중...")
-
-                    text = page.extract_text()
-                    raw_tables = page.extract_tables(table_settings={
-                        "vertical_strategy": "lines",    # 선(Line)을 기준으로 열 구분
-                        "horizontal_strategy": "lines",  # 선(Line)을 기준으로 행 구분
-                        "snap_tolerance": 3,             # 인접한 선들을 하나로 합치는 감도
-                        "join_tolerance": 3,             # 끊어진 선을 연결하는 감도
-                        "text_x_tolerance": 2,           # 텍스트 중복 인식을 방지하기 위한 x축 허용치 (중요!)
-                        "text_y_tolerance": 2            # y축 허용치
-                    })
+            with pdfplumber.open(pdf_path_str) as pdf:
+                total_pages = len(pdf.pages)
+                print(f"\n[PDF 추출 시작] 총 {total_pages}페이지 문서 파싱을 시작합니다.")
+                
+                for i, page in enumerate(pdf.pages):
+                    # 💡 [해결 2] 페이지별 작동 안내창 복구
+                    print(f"  ⏳ {i + 1} / {total_pages} 페이지 텍스트 및 표 추출 중...", end='\r')
                     
-                    tables = [
-                        TableModel(rows=table)
-                        for table in raw_tables
-                    ]
+                    blocks = []
+                    tables = page.find_tables()
+                    tables.sort(key=lambda t: t.bbox[1]) # Y좌표(위->아래) 정렬
+                    
+                    current_y = 0
+                    for table in tables:
+                        # 1. 표 '위'에 있는 텍스트 추출 (Crop)
+                        if table.bbox[1] > current_y:
+                            bbox = (0, current_y, page.width, table.bbox[1])
+                            try:
+                                cropped = page.crop(bbox)
+                                text = cropped.extract_text()
+                                if text and text.strip():
+                                    blocks.append({"type": "text", "content": text.strip()})
+                            except Exception:
+                                pass
+                        
+                        # 2. 표 데이터 추출
+                        blocks.append({"type": "table", "content": table.extract()})
+                        current_y = table.bbox[3]
+                    
+                    # 3. 마지막 표 '아래'에 남은 텍스트 추출
+                    if current_y < page.height:
+                        bbox = (0, current_y, page.width, page.height)
+                        try:
+                            cropped = page.crop(bbox)
+                            text = cropped.extract_text()
+                            if text and text.strip():
+                                blocks.append({"type": "text", "content": text.strip()})
+                        except Exception:
+                            pass
 
-                    page_model = PageModel(
-                        page_number=i,
-                        text=text,
-                        tables=tables
-                    )
-
-                    pages.append(page_model)
-
-            logger.info(f"✅ PDF 파싱 완료: {pdf_path.name}")
-            return DocumentModel(pages=pages)
-
+                    # 구버전 파서 호환을 위해 text, tables 필드 생성 + 순서 보존형 blocks 추가
+                    full_text = page.extract_text() or ""
+                    raw_tables = [t.extract() for t in page.find_tables()]
+                    
+                    data["pages"].append({
+                        "page_number": i + 1,
+                        "text": full_text,
+                        "tables": raw_tables,
+                        "blocks": blocks
+                    })
+                
+                # 추출 완료 안내
+                print(f"\n✅ [PDF 추출 완료] {total_pages}페이지 처리 성공")
+                logger.info(f"✅ PDF 텍스트/표 순차 추출 완료: {pdf_path_str}")
+                
         except Exception as e:
-            logger.error(f"❌ PDF 읽기 실패 ({pdf_path.name}): {str(e)}")
-            return None
-
-    @staticmethod
-    def save_outputs(doc: DocumentModel, pdf_path: Path, output_dir: Path):
-
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        base_name = pdf_path.stem
-        json_path = output_dir / f"{base_name}_raw.json"
-        yaml_path = output_dir / f"{base_name}_raw.yaml"
-
-        # JSON 저장
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(doc.model_dump(), f, indent=2, ensure_ascii=False)
-
-        logger.info(f"💾 JSON 저장 완료: {json_path.name}")
-
-        # YAML 저장
-        with open(yaml_path, "w", encoding="utf-8") as f:
-            yaml.dump(doc.model_dump(), f, allow_unicode=True, default_flow_style=False)
-
-        logger.info(f"💾 YAML 저장 완료: {yaml_path.name}")
+            logger.error(f"❌ PDF 파싱 실패 ({pdf_path_str}): {e}")
+            print(f"\n❌ PDF 파싱 실패: {e}")
+            
+        # 단순 딕셔너리가 아닌, main_cli.py의 .model_dump() 호출을 견디는 객체 반환
+        return DocumentResponse(data)
 
 
-# -------------------------
-# Target Processing
-# -------------------------
-def process_targets(input_target: Path, output_dir: Path):
-
-    pdf_files = []
-
-    if input_target.is_file() and input_target.suffix.lower() == ".pdf":
-        pdf_files.append(input_target)
-
-    elif input_target.is_dir():
-        pdf_files = list(input_target.glob("*.pdf"))
-
-    else:
-        logger.error(f"유효한 PDF 파일이나 폴더가 아닙니다: {input_target}")
-        return
-
-    if not pdf_files:
-        logger.warning("처리할 PDF가 없습니다.")
-        return
-
-    logger.info(f"총 {len(pdf_files)}개 PDF 처리 시작")
-
-    for idx, pdf_path in enumerate(pdf_files, start=1):
-        logger.info(f"===== [{idx}/{len(pdf_files)}] 파일 처리 시작 =====")
-
-        doc = PdfToJsonConverter.extract_data(pdf_path)
-
-        if doc:
-            PdfToJsonConverter.save_outputs(doc, pdf_path, output_dir)
-
-    logger.info("🎉 전체 작업 완료")
-
-
-# -------------------------
-# CLI
-# -------------------------
-def main():
-    parser = argparse.ArgumentParser(description="PDF → JSON/YAML 변환기")
-
-    parser.add_argument(
-        "-i", "--input",
-        default="database/src",    
-        help="PDF 파일 또는 폴더 경로(default: src)"
-    )
-
-    parser.add_argument(
-        "-o", "--output",
-        default="database/raw",    
-        help="출력 폴더 (default: raw)"
-    )
-
-    args = parser.parse_args()
-
-    input_path = Path(args.input).resolve()
-    output_dir = Path(args.output).resolve()
-
-    process_targets(input_path, output_dir)
-
-
+# CLI 실행용 (테스트 단독 실행 시)
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        logger.info("사용자 중단")
-        sys.exit(0)
-    except Exception as e:
-        logger.critical(f"시스템 오류: {e}")
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", required=True)
+    parser.add_argument("-o", "--output", required=True)
+    args = parser.parse_args()
+    
+    result_obj = PdfToJsonConverter.extract_data(args.input)
+    
+    out_path = Path(args.output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, 'w', encoding='utf-8') as f:
+        # 파일로 저장할 때는 딕셔너리 형태로 저장
+        json.dump(result_obj.dict(), f, ensure_ascii=False, indent=2)

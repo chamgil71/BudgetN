@@ -1,14 +1,11 @@
-# json_structurer.py (v2 - 사업 경계 오탐 수정 + multi 저장 직렬화 수정)
+# json_structurer.py (v2 - 사업 경계 오탐 수정 + multi 저장 직렬화 수정 + blocks 순서 보존)
 #
 # [v2 변경사항]
-# BUG-S1: 사업 경계 오탐 수정
-#   - 기존: "사업명" in text_content (부분 문자열) → 내역사업명/표 헤더에 오탐
-#   - 수정: _is_project_start() 전용 메서드
-#           "사 업 명\n(N) 사업명 (NNNN-NNN)" 제목 패턴만 허용
-# BUG-S2: _get_project_id() 코드 오인식 보완
-#   - 괄호 내 패턴 우선 매칭으로 예산금액 오인식 감소
-# BUG-S3: save() multi 모드 직렬화 누락
-#   - projects: Dict[str, ProjectData] → 각 ProjectData.model_dump() 처리
+# BUG-S1: 사업 경계 오탐 수정 (유지)
+# BUG-S2: _get_project_id() 코드 오인식 보완 (유지)
+# BUG-S3: save() multi 모드 직렬화 누락 (유지)
+# [신규 기능 추가]
+# FEATURE-B1: blocks 배열을 추가하여 텍스트-표-텍스트의 실제 문서 등장 순서 보존
 
 import json
 import re
@@ -24,6 +21,7 @@ class ProjectData(BaseModel):
     pages: List[int] = []
     text: str = ""
     tables: List[Any] = []
+    blocks: List[Dict[str, Any]] = [] # 💡 신규 추가: 텍스트와 표의 순서를 보존하는 배열
 
 class StructuredDocument(BaseModel):
     front: Dict[str, Any] = {"pages": [], "text": ""}
@@ -53,25 +51,20 @@ class JsonStructurer:
         return m.group(1) if m else None
 
     def _is_project_start(self, text: str) -> Optional[str]:
-        """
-        사업 시작 페이지 정밀 판정.
-        '사 업 명' 단독 줄 바로 다음에 '(N) 사업명 (NNNN-NNN)' 패턴이 있을 때만 코드 반환.
-        단순 '사업명' 부분 문자열(가. 예산 총괄표 헤더, 내역사업명 등) 오탐 방지.
-        """
+        """사업 시작 페이지 정밀 판정."""
         m = re.search(
             r'사\s*업\s*명\s*\n\s*(?:\(\d+\))?\s*.+?\((\d{4}-\d{3,4})\)',
             text
         )
         return m.group(1) if m else None
 
-    # [수정 1] tail_start_keyword를 Optional로 변경
     def process(self, tail_start_keyword: Optional[str] = None, dry_run: bool = False) -> Optional[StructuredDocument]:
         doc = StructuredDocument()
         current_section = "front"
         current_project_id = None
         
         duplicate_ids = []
-        project_toc = [] # [수정 2] 경계 검증용 목차 (ID, 시작페이지)
+        project_toc = []
 
         clean_keyword = tail_start_keyword.replace(" ", "") if tail_start_keyword else None
 
@@ -86,13 +79,13 @@ class JsonStructurer:
                 rows = t.get('rows', t) if isinstance(t, dict) else t
                 normalized_tables.append(rows)
 
-            # [수정 1] clean_keyword가 존재할 때만 Tail 판정 수행 (없으면 평생 Tail 진입 불가)
+            # [수정 1] clean_keyword가 존재할 때만 Tail 판정 수행
             if clean_keyword and current_section != "tail" and clean_keyword in text_content:
                 current_section = "tail"
             
-            # Project 판정 (BUG-S1 수정: 정밀 패턴으로 오탐 방지)
+            # Project 판정 (BUG-S1 수정)
             elif current_section != "tail":
-                p_id = self._is_project_start(text)   # 사업명+코드 제목 줄 패턴만 허용
+                p_id = self._is_project_start(text)
                 if p_id:
                     current_section = "projects"
                     current_project_id = p_id
@@ -100,9 +93,9 @@ class JsonStructurer:
                         duplicate_ids.append(f"Page {p_num}: {p_id}")
                     else:
                         doc.projects[p_id] = ProjectData()
-                        project_toc.append((p_id, p_num)) # 새 사업 시작 페이지 기록
+                        project_toc.append((p_id, p_num))
 
-            # 데이터 분배
+            # 데이터 분배 (기존 로직 100% 보존 + blocks 기능 추가)
             if current_section == "front":
                 doc.front["pages"].append(p_num)
                 doc.front["text"] += text
@@ -111,11 +104,24 @@ class JsonStructurer:
                 target.pages.append(p_num)
                 target.text += text
                 target.tables.extend(normalized_tables)
+                
+                # 💡 신규 로직: blocks 배열에 순서 보존용 데이터 누적
+                # 만약 pdf_to_json이 Y좌표 기반 blocks를 생성했다면 그것을 쓰고, 
+                # 아니면 기존 text와 tables를 뭉쳐서 순서대로 담아줍니다.
+                page_blocks = page.get('blocks', [])
+                if page_blocks:
+                    target.blocks.extend(page_blocks)
+                else:
+                    # 구버전 pdf_to_json 데이터 호환용
+                    if text.strip():
+                        target.blocks.append({"type": "text", "content": text})
+                    for table in normalized_tables:
+                        target.blocks.append({"type": "table", "content": table})
+
             elif current_section == "tail":
                 doc.tail["pages"].append(p_num)
                 doc.tail["text"] += text
 
-        # 통계 산출 (목차 데이터 포함)
         metrics = self._calculate_metrics(doc, duplicate_ids, project_toc)
         self._print_report(metrics, is_dryrun=dry_run)
 
@@ -136,7 +142,6 @@ class JsonStructurer:
             "toc": toc
         }
 
-    # [수정 2] Dryrun 시 목차 출력 기능 강화
     def _print_report(self, m: Dict, is_dryrun: bool = False):
         print("\n" + "═"*60)
         print(" 🔍 [경계 검증 및 무결성 리포트]")
@@ -154,12 +159,10 @@ class JsonStructurer:
         if m['duplicates']:
             print(f" ⚠️ 중복 사업코드 발견: {m['duplicates']}")
 
-        # Dryrun일 경우 감지된 사업 시작 페이지 목록 출력 (처음과 끝 위주)
         if is_dryrun and m['toc']:
             print("─"*60)
             print(" 📋 [감지된 사업 시작점 검증 (TOC)]")
             toc = m['toc']
-            # 너무 길면 앞뒤 5개씩만 출력
             display_toc = toc if len(toc) <= 10 else toc[:5] + [("...", "...")] + toc[-5:]
             for idx, item in enumerate(display_toc):
                 if item[0] == "...":
@@ -184,7 +187,6 @@ class JsonStructurer:
             for part in ["front", "projects", "tail"]:
                 output_file = base_path.with_name(f"{base_path.name}_{part}_structured.json")
                 part_data = getattr(doc, part)
-                # BUG-S3 수정: projects는 Dict[str, ProjectData] → 각 값을 개별 직렬화
                 if part == "projects":
                     serialized = {
                         k: (v.model_dump() if hasattr(v, "model_dump") else
@@ -204,7 +206,6 @@ class JsonStructurer:
 def main():
     parser = argparse.ArgumentParser(description="PDF 추출 데이터를 논리적 구조로 재편성 및 검증")
     parser.add_argument("-i", "--input", required=True, help="입력 raw.json 파일")
-    # [수정 1] required=False 로 변경하여 옵션화
     parser.add_argument("-k", "--keyword", required=False, default=None, help="Tail 영역 시작 키워드 (없으면 생략)")
     parser.add_argument("-m", "--mode", choices=["single", "multi"], default="single", help="저장 모드")
     parser.add_argument("--dryrun", action="store_true", help="파일 생성 없이 구역 경계 검증 리포트만 출력")

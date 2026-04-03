@@ -2,6 +2,7 @@ import json
 import re
 from datetime import datetime
 from pathlib import Path
+import sys
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
@@ -278,7 +279,91 @@ def generate_analysis():
         json.dump(col_output, f, ensure_ascii=False, indent=2)
     print(f"✅ collaboration_analysis.json 저장 완료 ({len(collab_pairs)}쌍)")
     
+    # ---------------------------------------------------------
+    # 4. merged.json 메타데이터 및 기본 통계 업데이트 로직 (동적 연도 적용)
+    # ---------------------------------------------------------
+    print("📊 merged.json 메타데이터 및 통계 업데이트 중...")
+    
+    year_req = Y['request']   # 예: 2026
+    year_orig = Y['original'] # 예: 2025
+    
+    depts = set()
+    total_req = 0.0
+    total_orig = 0.0
+    rnd_cnt = 0
+    info_cnt = 0
+    new_cnt = 0
+    by_dept = {}
+
+    for p in projects:
+        dept = p.get("department", "").strip() or "기타"
+        depts.add(dept)
+        
+        # 예산 계산
+        b_req = get_base_budget(p) 
+        b = p.get("budget", {})
+        b_orig = b.get(f"{year_orig}_original", 0.0) or b.get(f"{year_orig}_budget", 0.0) or 0.0
+        
+        total_req += b_req
+        total_orig += b_orig
+        
+        if p.get("is_rnd"): rnd_cnt += 1
+        if p.get("is_informatization"): info_cnt += 1
+        if p.get("status") == "신규": new_cnt += 1
+
+        by_dept[dept] = by_dept.get(dept, 0.0) + b_req
+
+    # 증감액 Top 10 계산
+    def get_increase(proj):
+        b = proj.get("budget", {})
+        b_req_val = get_base_budget(proj)
+        b_orig_val = b.get(f"{year_orig}_original", 0.0) or b.get(f"{year_orig}_budget", 0.0) or 0.0
+        return b_req_val - b_orig_val
+        
+    sorted_projs = sorted(projects, key=get_increase, reverse=True)
+    top_inc = [
+        {
+            "project_name": p.get("project_name", ""),
+            "code": p.get("code", ""),
+            "increase": get_increase(p)
+        }
+        for p in sorted_projs[:10] if get_increase(p) > 0
+    ]
+
+    # db(merged.json 원본 객체)에 데이터 채워넣기
+    if "metadata" not in db: db["metadata"] = {}
+    if "analysis" not in db: db["analysis"] = {}
+
+    db["metadata"].update({
+        "total_projects": len(projects),
+        "project_count": len(projects),
+        "total_departments": len(depts),
+        "departments_count": len(depts),
+        f"total_budget_{year_req}": total_req,
+        f"total_budget_{year_orig}": total_orig,
+        "budget_change": total_req - total_orig,
+        "rnd_projects": rnd_cnt,
+        "info_projects": info_cnt,
+        "new_projects": new_cnt,
+        "extraction_date": datetime.now().strftime("%Y-%m-%d"),
+        "source": "PDF 파싱 통합 데이터",
+        "base_year": year_req
+    })
+
+    db["analysis"].update({
+        "by_department": by_dept,
+        "top_increases": top_inc
+    })
+
+    # 완성된 db를 다시 merged.json에 덮어쓰기
+    with open(DB_PATH, 'w', encoding='utf-8') as f:
+        json.dump(db, f, ensure_ascii=False, indent=2)
+        
+    print(f"✅ merged.json 통계 업데이트 완료! (총 {len(projects)}건)")
+    print(f"💰 {year_req}년 총 예산: {total_req:,.0f} 백만원")
+    
     print("\n🎉 모든 AI 분석 데이터가 갱신되었습니다!")
+    
     print("👉 브라우저에 반영하려면 다음 명령어를 실행하세요: python scripts/pipeline/rebuild_embedded.py")
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 
 import os
 
-html_path = r'c:\ai\KAIB2026\index.html'
+html_path = r'"C:\ai\BudgetN\web\index.html"'
 
 with open(html_path, 'r', encoding='utf-8') as f:
     for i, line in enumerate(f):

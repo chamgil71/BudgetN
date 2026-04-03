@@ -11,6 +11,7 @@ convert.py v2.0  —  XLSX → merged.json
 import sys, os, json, yaml, re, datetime, logging, argparse
 from pathlib import Path
 from collections import defaultdict
+from config.path_config import LOGS_DIR, INPUT_DIR, OUTPUT_DIR, RAW_DIR, MERGED_JSON_PATH
 
 try:
     import openpyxl
@@ -615,7 +616,7 @@ def read_json_file(file_path, cfg, logger):
 # ── merged.json 저장 (upsert 지원) ────────────────────────────
 def save_merged(new_projects, cfg, logger):
     out_cfg   = cfg.get("output", {})
-    merged_path = ROOT / cfg["paths"]["merged"]
+    merged_path = MERGED_JSON_PATH
     mode = out_cfg.get("merge_mode", "upsert")
     pk   = cfg.get("pk_field", "code")
     excl = set(cfg.get("exclude_codes", []) or [])
@@ -709,7 +710,7 @@ def watch_mode(cfg, logger):
     except ImportError:
         logger.error("watchdog 미설치: pip install watchdog --break-system-packages"); sys.exit(1)
 
-    input_dir = ROOT / cfg["paths"]["input"]
+    input_dir = INPUT_DIR 
     input_dir.mkdir(parents=True, exist_ok=True)
 
     class Handler(FileSystemEventHandler):
@@ -754,7 +755,7 @@ def main():
     if args.overwrite:
         cfg["output"]["merge_mode"] = "overwrite"
 
-    log_dir = ROOT / cfg["paths"].get("logs", "logs")
+    log_dir = LOGS_DIR
     logger = setup_logger(log_dir)
 
     if args.watch or cfg["pipeline"].get("run_mode") == "watch":
@@ -767,7 +768,7 @@ def main():
             if t.is_dir(): paths += list(t.glob("*.xlsx")) + list(t.glob("*.xlsm"))
             else: paths.append(t)
     else:
-        input_dir = ROOT / cfg["paths"]["input"]
+        input_dir = INPUT_DIR 
         paths = list(input_dir.glob("*.xlsx")) + list(input_dir.glob("*.xlsm")) + list(input_dir.glob("*.json"))
         if not paths:
             logger.warning(f"input/ 에 변환할 파일(xlsx, json)이 없습니다: {input_dir}"); return
