@@ -1,58 +1,69 @@
-# ⚡ KAIB2026 파이프라인 퀵 가이드 (Quick Guide)
+# ⚡ KAIB2026 운영자 퀵 가이드 (Quick Guide)
+> **Fast-Track Operations & Deployment**
 
-## 📌 상황 1: 엑셀 또는 예전 JSON 파일로 처음부터 데이터 빌드할 때
-`input/` 폴더 내에 엑셀(총괄표, A4요약표) 파일이나 다른 시스템에서 받아온 `~.json` 파일을 마구잡이로 넣어두면, 파이프라인이 하나의 `budget_db.json`으로 병합시켜줍니다.
+본 문서는 데이터 업데이트부터 웹 배포까지 빈번하게 쓰이는 핵심 명령어 및 절차를 요약합니다.
 
-```powershell
-# 엑셀 파싱 -> 연도 자동변경 -> 병합 -> AI 분석 일괄 수행
+---
+
+## 📌 상황 1: PDF 예산서에서 처음부터 데이터를 추출할 때
+비정형 PDF 파일을 `input/` 폴더에 넣고 다음 단계를 순차적으로 실행합니다.
+
+1. **PDF 텍스트/표 추출**
+   ```bash
+   python scripts/preProc/pdf_to_json.py -i ./input
+   ```
+2. **사업 단위 분할 및 정밀 파싱**
+   ```bash
+   python scripts/preProc/budget_parser.py -i ./input -o ./output/individual
+   ```
+3. **최종 병합 및 스키마 검증**
+   ```bash
+   python scripts/preProc/json_manager.py merge -i ./output/individual -o ./output/merged.json
+   ```
+
+---
+
+## 📌 상황 2: 엑셀(XLSX) 파일을 수정/추가하여 통합할 때
+`input/` 폴더에 수정된 엑셀 파일을 넣고 통합 빌드를 수행합니다.
+
+```bash
+# 엑셀 임포트 -> JSON 병합 -> AI 분석(유사도/협업) 일괄 수행
 python scripts/pipeline/master_builder.py build
 
-# 완성된 결과물들을 웹 서버(대시보드)에 덮어씌워 배포
+# 생성된 결과를 웹 대시보드(web/data)에 배포
 python scripts/pipeline/master_builder.py deploy
 ```
 
 ---
 
-## 📌 상황 2: 엑셀 없이, 기존에 생성된 DB만 갱신할 때
-이미 어제 배포가 다 끝났는데, `output/merged.json` 원본 내용을 누군가 수동으로 조금 수정했거나, `config.yaml`의 **기준연도(base_year)** 만 바꿔서 대시보드를 새로고침하고 싶을 때 사용합니다.
+## 📌 상황 3: 오프라인(폐쇄망) 배포용 단일 HTML 제작
+인터넷이나 서버 구동이 불가능한 환경(USB 배포 등)을 위해 모든 데이터를 포함한 HTML 통파일을 생성합니다.
 
-```powershell
-# 엑셀 임포트 생략 -> JSON 다이렉트 메타데이터 갱신 및 AI 분석
-python scripts/pipeline/master_builder.py json-build
-
-# 완성된 결과물들을 웹 서버(대시보드)에 덮어씌워 배포
-python scripts/pipeline/master_builder.py deploy
-```
-
----
-
-## 📌 상황 3: 오프라인(USB) 배포용 단일 HTML 파일로 구워낼 때
-웹 서버(`python -m http.server`)를 켤 수 없는 폐쇄망 환경에서 클릭 한 번으로 대시보드를 열어보고 싶을 때, 모든 CSS, JS, 데이터를 HTML 통파일 하나에 압축해줍니다.
-
-```powershell
-# 단일 HTML 파일 압축 생성 (20MB 내외)
+```bash
+# 단일 HTML 압축 생성 (20MB 내외)
 python scripts/pipeline/master_builder.py bundle
 ```
-> **👉 보관 위치:** `output/KAIB2026_Standalone.html`
+- **산출물**: `output/KAIB2026_Standalone.html` (클릭 시 즉시 구동)
 
 ---
 
-## 📌 상황 4: 특정 부처 약칭이나 동의어를 추가/수정하고 싶을 때
-"과기부" 검색 시 "과학기술정보통신부"가 나오게 하려면 `config/config.yaml` 파일만 수정하면 됩니다.
+## 📌 상황 4: 특정 키워드 검색 동의어 추가
+"AI 반도체" 검색 시 "지능형 반도체"가 함께 나오도록 설정합니다.
 
-1. **`config/config.yaml`** 열기
-2. **`search_aliases:`** 섹션 하단에 원하는 키워드 추가
+1. `config/config.yaml`의 `search_aliases:` 하단에 키워드 추가
    ```yaml
    search_aliases:
-     '내약칭': ['검색될_풀네임1', '검색될_풀네임2']
+     '지능형 반도체': ['AI 반도체', 'AI-Semiconductor']
    ```
-3. 수정 후 위의 **[상황 2]** 절차(`json-build` -> `deploy`)를 수행하여 반영.
+2. `master_builder.py build` -> `deploy` 재실행
 
 ---
 
-## 💡 검색 꿀팁 (Advanced Search)
-개요 탭과 사업목록 탭의 검색창은 다음의 강력한 기능을 똑같이 지원합니다.
-- **띄어쓰기**: `로봇 과기부` (로봇과 과기부가 모두 포함된 사업 - AND)
-- **파이프 기호(`|`)**: `로봇 | 드론` (로봇 또는 드론 중 하나라도 포함 - OR)
-- **마이너스 기호(`-`)**: `인공지능 -의료` (인공지능 포함하되 의료는 제외 - NOT)
-- **구문 검색(`""`)**: `"스마트 제조"` (정확히 해당 문구가 붙어있는 것만 검색)
+## 💡 대시보드 검색 꿀팁 (Advanced Search)
+대시보드 상단 검색창은 다음의 특수 구문을 지원합니다.
+
+- **AND 검색 (공백)**: `로봇 인공지능` (두 키워드 모두 포함)
+- **OR 검색 (`|`)**: `의료 | 실감` (둘 중 하나라도 포함)
+- **NOT 검색 (`-`)**: `인공지능 -인력` (인공지능 포함, 인력양성 제외)
+- **구문 검색 (`""`)**: `"스마트 공정"` (정확히 일치하는 문구만)
+- **부처 검색**: `과기부` (동의어 사전에 의해 과학기술정보통신부 자동 검색)

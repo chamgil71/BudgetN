@@ -1,8 +1,23 @@
 # PDF 텍스트 및 2D 테이블 구조 추출 엔진
-pdfplumber>=0.10.3
+pdfplumber>=0.11.0
 
 # 데이터 스키마 검증 및 직렬화 (V2 문법 필수)
-pydantic>=2.0.0
+pydantic>=2.5.0
 
-# YAML 파일 저장 지원 (PyYAML)
+# YAML 파일 저장 및 로드 지원
 PyYAML>=6.0.1
+
+# Excel 데이터 읽기/쓰기 엔진 (xlsx, xlsm 대응)
+openpyxl>=3.1.2
+
+# AI 유사도 분석 및 실시간 벡터 계산 (TF-IDF, Cosine Similarity)
+scikit-learn>=1.3.0
+
+# 데이터 처리 능률 향상 (Legacy 도구 및 전처리 보조)
+pandas>=2.1.0
+
+# 파일 시스템 실시간 감시 (convert.py --watch 모드용)
+watchdog>=3.0.0
+
+# HTML 템플릿 처리 (Standalone 빌드 확장용)
+Jinja2>=3.1.2

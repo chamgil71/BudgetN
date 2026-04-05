@@ -1,190 +1,88 @@
-# 6. 🌐 웹 작동방식, CSS 적용, 템플릿 활용, 검색/필터 개선 방안
+# KAIB2026 상세 기술 가이드 및 운영 매뉴얼
+> **Advanced Technical Reference for Budget Data Infrastructure**
 
-## 6.1 웹 작동방식 개요
-
-- **index.html**: 모든 UI의 진입점. `<script>`, `<link>`로 JS/CSS/데이터를 로드.
-- **js/**: 각 탭별/기능별 JS가 데이터(json) fetch, DOM 렌더링, 이벤트 처리 담당.
-- **css/**: 각 탭/기능별 스타일 분리. 공통(main.css, style.css) + 탭별(policy-cluster.css 등)로 세분화.
-- **data/**: 전처리된 json 데이터. JS에서 fetch하여 전역 변수(window.DATA 등)로 할당.
-- **template/**: 신규 데이터 입력/가공용 CSV 템플릿. 엑셀 등에서 신규 사업/서브사업 등록 시 참고.
-
-### 데이터 흐름
-1. index.html → app.js에서 budget_db.json 등 fetch → window.DATA 할당
-2. 각 탭 클릭 시 해당 JS(tabs/...)가 데이터 가공 후 DOM 렌더링
-3. CSS는 탭별/기능별로 자동 적용(아래 참고)
-
-## 6.2 CSS 파일 적용 방식
-
-- index.html의 `<link href="css/xxx.css" rel="stylesheet">`로 각 CSS가 전역 적용됨
-- 공통 스타일(main.css, style.css) + 탭별 세부 스타일(policy-cluster.css, cross-compare.css 등)로 분리
-- 탭별로 필요한 CSS만 분리 관리하므로, 유지보수/확장에 용이
-- 미사용 CSS는 삭제 가능(단, 탭 추가/변경 시 누락 주의)
-
-## 6.3 template 폴더 사용법
-
-- 신규 사업/서브사업 등록 시, template/projects_template.csv, sub_projects_template.csv 참고
-- 엑셀 등에서 해당 템플릿을 복사해 입력 후, 파이프라인(scripts/pipeline/convert.py 등)에서 자동 ingest
-- 템플릿 구조가 변경되면, 파이프라인 스크립트와 JS 데이터 파싱 로직도 함께 점검 필요
-
-## 6.4 전체검색/특정조건(implementing_agency) 온오프 버튼 구현 검토
-
-- **현황:**
-  - list-view.js 등에서 전체 사업 검색/필터링은 기본적으로 input(검색창)과 select(필터)로 구현됨
-  - 특정 조건(예: implementing_agency = "정보통신산업진흥원" 또는 "nipa")만 필터링하는 기능은 별도 버튼/토글로 구현되어 있지 않음
-
-- **구현 가능성:**
-  - JS(예: list-view.js, app.js)에서 필터 조건을 변수로 관리하고, 버튼 클릭 이벤트로 조건을 온/오프 가능
-  - 예시: [전체]↔[NIPA만] 토글 버튼 추가 → 클릭 시 window.DATA.projects를 조건부 필터링하여 렌더링
-  - UI: 버튼/스위치/체크박스 등으로 구현 가능(탭 상단, 필터바 등 위치 자유)
-
-- **개선/추가 방안:**
-  1. list-view.js(또는 해당 탭 JS)에 "NIPA 사업만 보기" 토글 버튼 추가
-  2. 버튼 클릭 시, implementing_agency가 "정보통신산업진흥원", "nipa"(대소문자 무관)인 데이터만 필터링
-  3. 전체/조건부 결과를 실시간으로 전환
-  4. 필요시, 다른 부처/기관명도 옵션화 가능
-
----
-# 5. 🗂️ index.html 탭별 연계 JS 파일 구조표
-
-아래 표는 index.html 내 각 주요 탭(Overview, Department, Field, Duplicate, Projects 등)이 실제로 어떤 JS 파일(또는 TS 파일)과 연계되어 동작하는지 구조적으로 정리한 것입니다. 각 탭의 ID, 주요 기능, 연동 JS 파일, 데이터 의존성까지 한눈에 파악할 수 있습니다.
-
-| 탭명(한글)         | 탭 ID             | 주요 기능/역할                | 연계 JS 파일                | 주요 데이터 파일           |
-|--------------------|-------------------|-------------------------------|----------------------------|----------------------------|
-| 개요               | tab-overview      | KPI, 트리맵, 요약             | dashboard.js, app.js       | budget_db.json             |
-| 부처별             | tab-department    | 부처별 분석/트리맵            | tabs/department.js         | budget_db.json             |
-| 분야별             | tab-field         | 분야별 분석/트리맵            | tabs/field.js              | budget_db.json             |
-| 유사/중복성분석    | tab-duplicate     | 중복/유사도 카드, 차트        | tabs/duplicate.js          | similarity_analysis.json, budget_db.json |
-| 사업목록           | tab-projects      | 사업 리스트, 상세 모달         | list-view.js, app.js       | budget_db.json             |
-| 상세비교           | tab-cross-compare | 부처/사업 상세 비교           | cross-compare.js           | budget_db.json             |
-| 미래시뮬           | tab-future        | 예산 증감 시뮬레이션          | future-sim.js              | budget_db.json             |
-| 협업분석           | tab-policy        | 부처간 협업 적합도/랭킹       | policy-cluster.js          | collaboration_analysis.json|
-| 네트워크           | tab-ai-tech       | 기술·산업 분포망              | network-viz.js             | budget_db.json             |
-| 인사이트(챗봇)     | tab-insight       | 예산 인사이트 챗봇            | ai-insight.js              | (없음, UI 전용)            |
-
-> 참고: 실제로는 js/ 폴더 내 파일명은 .js이나, 타입스크립트 기반 프로젝트라면 .ts로 관리될 수 있습니다. (빌드시 .js로 변환)
-
----
-# 4. 🗂️ `web/js` & `web/data` 파일별 연관관계 및 탭별 작동 현황 분석
-
-본 프로젝트의 웹서비스는 `web/data/` 폴더 내 **전처리 완료된 JSON 데이터**를 기반으로 각 탭별로 동작합니다. 아래 표는 **각 JS 파일(탭/기능별)**과 **data 폴더의 JSON 파일** 간의 1:1/1:N 연관관계를 정리한 것입니다. 또한, 실제 서비스 가능 여부와 데이터 의존성, 개선 필요점까지 세부적으로 분석합니다.
-
-| JS 파일명                | 주요 역할/탭                | 연관 데이터 파일           | 작동 조건/의존성         | 현재 서비스 가능성 | 개선/점검 필요사항 |
-|--------------------------|-----------------------------|----------------------------|--------------------------|-------------------|-------------------|
-| **app.js**               | 전체 앱 초기화, 전역 변수   | budget_db.json             | budget_db.json 필수      | O                 | -                 |
-| **dashboard.js**         | 개요(Overview) 탭 KPI/트리맵| budget_db.json             | budget_db.json           | O                 | -                 |
-| **list-view.js**         | 사업 목록(Projects) 탭      | budget_db.json             | budget_db.json           | O                 | -                 |
-| **cross-compare.js**     | 상세 비교(Cross-Compare)    | budget_db.json             | budget_db.json           | O                 | -                 |
-| **future-sim.js**        | 미래 예산 시뮬레이터        | budget_db.json             | budget_db.json           | O                 | -                 |
-| **duplicate-sim.js**     | 유사/중복성 분석(Duplicate) | similarity_analysis.json,  | similarity_analysis.json, | △ (데이터 없으면 X) | similarity_analysis.json 최신화 필요 |
-|                          |                             | budget_db.json             | budget_db.json           |                   |                   |
-| **policy-cluster.js**    | 협업분석(Policy Cluster)    | collaboration_analysis.json| collaboration_analysis.json| △ (데이터 없으면 X) | collaboration_analysis.json 최신화 필요 |
-| **network-viz.js**       | 기술·산업 분포망            | budget_db.json             | budget_db.json           | O                 | -                 |
-| **ai-insight.js**        | 예산 인사이트(챗봇)         | (없음, UI 전용)            | -                        | O                 | -                 |
-
-#### ▷ 데이터 파일별 상세 설명 및 JS 연관성
-
-- **budget_db.json**: 모든 주요 탭(개요, 목록, 비교, 시뮬, 네트워크 등)의 기본 데이터 소스. 이 파일이 없으면 대부분의 탭이 정상 작동 불가.
-- **similarity_analysis.json**: Duplicate(유사/중복성 분석) 탭의 핵심 데이터. 없거나 포맷이 맞지 않으면 해당 탭은 비활성/에러.
-- **collaboration_analysis.json**: Policy Cluster(협업분석) 탭의 핵심 데이터. 없으면 해당 탭은 비활성/에러.
-- **hybrid_similarity.json_backup**: 실험적/백업용. 직접적으로 UI에서 사용하지 않음(향후 확장 가능성).
-
-#### ▷ 탭별 작동/비작동 구분 및 점검 포인트
-
-1. **개요(Overview), 사업목록(Projects), 상세비교, 미래시뮬, 네트워크**
-  - **budget_db.json**만 있으면 정상 작동.
-  - 데이터 누락/포맷 오류시 전체 서비스 불가.
-
-2. **유사/중복성 분석(Duplicate)**
-  - **similarity_analysis.json**이 반드시 필요.
-  - budget_db.json과의 연계 필수(프로젝트 ID 등).
-  - 데이터가 없거나, 분석 스크립트 미실행/포맷 불일치시 탭이 비활성/에러.
-  - **점검:** scripts/analysis/generate_ai_analysis.py 재실행 필요 여부 확인.
-
-3. **협업분석(Policy Cluster)**
-  - **collaboration_analysis.json**이 반드시 필요.
-  - budget_db.json과의 연계 필수.
-  - 데이터가 없거나, 분석 스크립트 미실행/포맷 불일치시 탭이 비활성/에러.
-  - **점검:** scripts/analysis/generate_ai_analysis.py 재실행 필요 여부 확인.
-
-4. **기타/실험적 데이터**
-  - hybrid_similarity.json_backup 등은 현재 UI에서 직접 사용하지 않으나, 향후 확장/실험에 활용 가능.
-
-#### ▷ 서비스 가능/불가 항목 요약
-
-- **O(가능):** budget_db.json만 있으면 작동하는 탭(개요, 목록, 비교, 시뮬, 네트워크, 인사이트)
-- **△(조건부):** similarity_analysis.json, collaboration_analysis.json 등 추가 데이터 필요(유사/중복성, 협업분석)
-- **X(불가):** 필수 데이터가 없거나 포맷이 맞지 않을 때(탭 비활성/에러)
-
-#### ▷ 개선/점검 필요사항
-
-- 분석 데이터가 오래되었거나, 신규 사업/연도 반영이 안 된 경우 scripts/analysis/generate_ai_analysis.py를 반드시 재실행하여 최신화 필요
-- budget_db.json의 필드/ID가 변경되면 연관 분석 데이터도 반드시 동기화 필요
-- 데이터 포맷이 맞지 않거나, JS에서 요구하는 필드가 누락된 경우 UI가 정상 작동하지 않으므로, 데이터 구조 변경 시 JS 코드도 함께 점검
-
----
-# 📘 KAIB2026 유지보수 종합 가이드라인 (Maintenance Guide)
-
-본 문서는 파이프라인 내부의 스크립트 도구들(`scripts/`)과 프론트엔드(`web/js/`) 파일들이 어떤 역할을 하며, 서로 어떤 DB 파일들(`data/*.json`)과 의존하고 있는지 철저히 해부한 운영자 전용 트러블슈팅 매뉴얼입니다.
+본 문서는 파이프라인의 내부 작동 원리, 데이터 정합성 유지 방법, 그리고 프론텍엔드와 백엔드 간의 의존성 전반을 다룹니다.
 
 ---
 
-## 1. 📂 `scripts/` (자동화 스크립트) 파일별 역할 및 연관 데이터
+## 1. 📂 스크립트 도구함 (Scripts Toolbox)
 
-파이프라인의 백엔드를 담당하며 주로 터미널에서 실행되는 파일들입니다. 기능 단위로 서브 디렉토리화 되어있습니다.
+파이프라인은 기능에 따라 3개의 주요 디렉토리로 나뉩니다.
 
-### `scripts/pipeline/` (주력 변환 파이프라인)
-* **`master_builder.py`**: 시스템의 **핵심 제어 센터**. `build`, `json-build`, `deploy`, `bundle` 4가지 통합 명령어를 수신받아 아래의 서브 스크립트들을 차례로 호출합니다.
-* **`excel_manager.py`**: 터미널 명령어를 파싱하여 `convert.py`, `export_xlsx.py` 등으로 제어권을 넘겨주는 라우터 역할을 합니다.
-* **`convert.py`**: `input/` 안의 `.xlsx`, `.xlsm`, `.json` 입력 파일들을 쭉 읽어들여 몽땅 파싱한 뒤, 합쳐서 단일 **`output/merged.json`**을 만들어냅니다. `config.yaml` 연도를 기반으로 자동 마이그레이터 엔진이 탑재되어 있으며, `program.code` 해실을 이용해 **영구적인 고정 ID**를 발급합니다.
-* **`convert_a4.py`**: A4 요약 양식으로 된 엑셀 특수 포맷을 전담해서 읽는 스크립트입니다. (현재는 `convert.py` 안으로 통합 활용 중)
-* **`export_*.py`**: 현재 JSON 상태를 다시 엑셀 포맷으로 역(Reverse) 추출할 때 씁니다.
-* **`build_standalone.py`**: 단일 HTML 파일 배포명령(`bundle`)시, HTML 소스를 열어 `<script>`, `<link>` 태그들을 인라인 소스로 압축 삽입해줍니다.
-* **`rebuild_embedded.py`**: deploy 명령 시 작동하며, `web/data` 내부의 거대한 JSON 파일 3개를 자바스크립트 변수(`var EMBEDDED_DATA = { ... }`) 파일(`web/js/embedded-*.js`) 형태로 구버전 브라우저 캐싱을 위해 복사/말아줍니다.
+### 1-1. `scripts/preProc/` (전처리 레이어)
+비정형 PDF 데이터를 정형 JSON으로 변환하는 초기 단계입니다.
+- **`pdf_to_json.py`**: `pdfplumber`를 이용해 PDF 내의 텍스트 상자와 2D 테이블 구조를 원시 형태(`_raw.json`)로 추출합니다.
+- **`budget_parser.py`**: 전처리 엔진의 핵심입니다. 정규식을 통해 (번호-사업명-코드) 패턴을 찾아 사업을 분할하고, `budget_2026` 등 핵심 예산을 추출합니다.
+- **`json_manager.py`**: 개별 파싱된 JSON 파일들을 `template_schema.json` 기준으로 검증(Validate)하고 하나로 병합(Merge)합니다.
 
-### `scripts/analysis/` (AI 텍스트 처리망)
-* **`generate_ai_analysis.py`**: `output/merged.json`의 원문 텍스트(사업목적, 키워드, 부서명 등)를 형태소 단위로 분산 스캔하여, TF-IDF 기반의 Jaccard 거리를 계산합니다. 이 파일이 **`similarity_analysis.json`**(중복성 분석)과 **`collaboration_analysis.json`**(협업 분석)을 만들어냅니다.
+### 1-2. `scripts/pipeline/` (빌드 및 배포 레이어)
+데이터 통합 및 웹 배포를 제어합니다.
+- **`master_builder.py`**: 전체 파이프라인의 **오케스트레이터**입니다. `build`, `deploy`, `bundle` 명령을 통합 관리합니다.
+- **`excel_manager.py`**: XLSX 파일과 JSON 간의 변환을 라우팅하며, `convert.py`를 호출하여 엑셀 데이터를 임포트합니다.
+- **`rebuild_embedded.py`**: `web/data`의 거대 JSON을 JS 변수 형태(`web/js/embedded-data.js`)로 변환하여 브라우저 로딩 속도를 최적화합니다.
 
-### `scripts/legacy_tools/` & `utils/` (참고용/잡동사니)
-* `data_manager_gui.py` 등 옛날 Streamlit GUI 개발 관련 툴이 보관되어 있으나 현재 파이프라인에선 쓰지 않습니다.
-* `refactor_frontend.py` 등은 프론트엔드 연도 하드코딩 일괄 치환 공사에 쓰였던 1회성 스크립트입니다.
+### 1-3. `scripts/analysis/` (AI 분석 레이어)
+데이터 간의 논리적 연결을 생성합니다.
+- **`generate_ai_analysis.py`**: `scikit-learn`의 TF-IDF 벡터라이저를 사용하여 사업 목적과 키워드 간의 유사도를 계산합니다. `similarity_analysis.json`과 `collaboration_analysis.json`을 생성하며, 이는 대시보드의 '유사성'/'협업' 탭에서 시각화됩니다.
 
 ---
 
-## 2. 🖥 `web/js/` (프론트엔드 UI) 파일별 역할과 DB 의존성
+## 2. ⚙️ 설정 가이드 (Configuration: `config.yaml`)
 
-화면의 각 탭과 차트를 그려내는 브라우저 실행단 코드입니다.
+`config/config.yaml`은 시스템의 모든 환경변수와 맵핑 룰을 정의합니다.
 
-| 파일명 | 역할 및 렌더링 범위 | 구동에 필수적인 DB 파일 (의존성) |
+- **`years` 섹션**:
+  - `base_year`: 2026 (현재 기준 연도 설정)
+  - `label_*`: 엑셀 헤더에서 찾을 연도 레이블 정의
+- **`xlsx.column_mapping`**: 엑셀 컬럼명과 JSON 필드 간의 1:1 매칭 정의.
+  - `{base}`, `{prev}` 등의 플레이스홀더를 사용하여 연도 변경 시 자동 대응합니다.
+- **`search_aliases`**: "과기부" 검색 시 "과학기술정보통신부"가 결과에 포함되도록 하는 동의어 사전입니다.
+- **`validation`**: 필수 필드(`code`, `project_name` 등) 누락 시 에러 발생 조건을 설정합니다.
+
+---
+
+## 3. 📊 데이터 스키마 및 ID 발급 규칙
+
+시스템은 데이터 정합성을 위해 다음과 같은 고정 ID 체계를 따릅니다.
+
+### ID 발급 메커니즘 (`id` 필드)
+- 원본의 `code`, `project_name`, `department`를 조합하여 MD5 해시를 생성합니다.
+- 결과값: `PRJ-A1B2C3D4` 형태
+- **장점**: 엑셀의 행 순서가 바뀌거나 파일명이 변경되어도, 사업 내용이 같다면 동일한 고정 ID를 유지하여 AI 분석 결과 및 메모 기능을 보존합니다.
+
+### 핵심 예산 필드 규격
+- `budget.2026_budget`: 올해 본예산 (확정/요구)
+- `budget.2025_original`: 전년도 본예산
+- `budget.2024_settlement`: 전전년도 결산액
+- `budget.change_amount`: 증감액 (자동 계산)
+- `budget.change_rate`: 증감률 (자동 계산)
+
+---
+
+## 🖥 4. 웹 대시보드 구조 및 의존성
+
+웹 대시보드(`web/`)는 서버 없이도 동작 가능한 **Zero-Server SPA** 구조입니다.
+
+| 탭 / 기능 | 담당 JS 파일 | 필수 데이터 |
 | :--- | :--- | :--- |
-| **`app.js`** | `index.html` 최초 로딩 시 전역 변수(`window.DATA`, `window.BASE_YEAR` 등)를 할당하고, 각 탭 클릭 이벤트를 분기해주는 프론트엔드의 **메인 허브**입니다. | `budget_db.json` (가장 먼저 Fetch 시도, 실패시 `embedded-data.js`의 fallback 캐시 작동) |
-| **`common.js`** | `getBudgetBase()`, 포배터, 툴팁 표시기능 등 모든 스크립트가 공통으로 가져다 쓰는 유틸 함수 꾸러미입니다. | 없음 (독립 유틸리티) |
-| **`dashboard.js`** | **대시보드 개요** 탭. 상단 4개 KPI 박스와, 부처별/분야별 트리맵을 그려냅니다. | `budget_db.json` |
-| **`list-view.js`** | **사업 목록** 탭. DataTables를 이용해 수천건의 사업 리스트와 상세 모달창을 띄워줍니다. | `budget_db.json` |
-| **`cross-compare.js`** | **상세 비교 설계** 탭. 두 부처를 비교하는 방사형 차트 등을 동적 렌더링합니다. | `budget_db.json` |
-| **`future-sim.js`** | **미래 예산 시뮬레이터** 탭. 예산 삭감/증액 시뮬레이션 인터페이스 담당입니다. | `budget_db.json` |
-| **`duplicate-sim.js`** | **유사/중복성 분석** 탭. 카드를 펼치고 중복사유 텍스트와 레이더 차트를 동기화하여 그립니다. | `similarity_analysis.json` (필수) + `budget_db.json` |
-| **`policy-cluster.js`** | **부처 간 협업분석** 탭. 협업 적합도 랭킹과 추천 리스트를 시각화합니다. | `collaboration_analysis.json` (필수) |
-| **`network-viz.js`** | **기술·산업 분포망** 탭. 노드 간의 Force-Directed 그래프 애니메이션을 제어합니다. | `budget_db.json` (가공 없는 자체 로직) |
-| **`ai-insight.js`** | **예산 인사이트** 탭. 챗봇 형태의 LLM 인터페이스를 그려줍니다. | 없음 (UI 스크립트 전용) |
-
-> 📌 **UI 색상 규칙**: `budget_db.json`만 순수하게 사용하는 단일 연동 탭(개요, 사업목록 등)은 좌측 메뉴 버튼 색상이 **진한 파란색(`pure-db`)**으로 스타일링되어 있어 유지보수 직관성을 제공합니다.
+| **전체 초기화** | `app.js` | `budget_db.json` |
+| **사업 목록** | `list-view.js` | `budget_db.json` |
+| **유사성 분석** | `duplicate-sim.js` | `similarity_analysis.json` |
+| **협업 분석** | `policy-cluster.js` | `collaboration_analysis.json` |
+| **미래 시뮬** | `future-sim.js` | `budget_db.json` |
 
 ---
 
-## 3. 🚨 자주 발생하는 문제 상황 및 해결 (Troubleshooting)
+## 🚨 5. 트러블슈팅 (Troubleshooting)
 
-### Q1. 파이프라인(`master_builder.py build`) 실행 시 "ID 참조 에러" 혹은 "키가 없습니다"가 뜹니다.
-* **원인**: `input/` 의 엑셀이나 구형 JSON 데이터 안에 **"사업코드"(`code`)**, **"사업명"(`project_name`)**, **"부처명"(`department`)** 등 코어 기준 속성이 통째로 비어있기 때문입니다.
-* **해결**: 새로 패치된 `convert.py`는 이 3개의 필드를 조합해 MD5 해시로 **영구 고정 ID(`PRJ-ABC...`)**를 안전하게 부여합니다. 엑셀의 원본 셀 값이 누락되지 않았는지 1차로 확인하십시오.
+### Q1. "Duplicate ID" 또는 "Key Error" 발생 시
+- **원인**: 엑셀 내에 동일한 `code`를 가진 행이 존재하거나, 필수 컬럼이 누락됨.
+- **해결**: `logs/` 폴더 내의 최신 로그 파일을 확인하여 중복된 코드나 비어있는 셀을 수정하십시오.
 
-### Q2. 2027년도로 `config.yaml`을 바꿨는데, 화면의 탭 내용 일부가 옛날 연도(2026)로 깨져서 나옵니다!
-* **원인**: JSON 연도 필드 마이그레이션과 프론트엔드의 `getBudgetBase()` 동기화가 아직 브라우저 내부 캐시망에 온전히 갱신되지 않은 현상입니다.
-* **해결**:
-  1. `master_builder.py deploy`를 한 번 더 날려 웹서버 내부 로컬 덮어쓰기를 확실히 수행합니다.
-  2. 크롬 기준 브라우저 탭에서 **`Ctrl + F5` (강력 새로고침)** 혹은 **개발자 도구(F12) > Application > Clear storage** 후 새로고침하십시오.
+### Q2. 연도 변경 후 대시보드 레이블이 바뀌지 않음
+- **원인**: 브라우저 강력 캐시 또는 `rebuild_embedded.py` 미실행.
+- **해결**: `master_builder.py deploy`를 재실행하고, 브라우저에서 `Ctrl + F5`를 눌러 캐시를 초기화하십시오.
 
-### Q3. "유사/중복성 분석(Duplicate)" 이나 "협업분석(Cluster)" 탭을 클릭했는데 아무것도 나오지 않고 하얀 화면이 유지됩니다.
-* **원인**: `similarity_analysis.json` 등의 파일을 브라우저가 읽어오지 못했거나 포맷이 손상되었습니다.
-* **해결**:
-  1. `master_builder.py json-build`를 실행해 AI 알고리즘망(`generate_ai_analysis.py`)을 강제 재기동시킵니다.
-  2. 에러가 복구되지 않는다면 엑셀(`budget_db.json`의 원본)에 빈 텍스트(엔터키 무한반복 등)가 입력되어 NLP 토큰 분석기가 뻗었을 확률이 농후하므로 `logs/` 폴더 내의 변환 에러 로그를 확인합니다.
+### Q3. PDF 추출 시 표 데이터가 깨짐
+- **원인**: PDF 내 표 구조가 복합 셀(Merged)로 구성되어 있어 `pdfplumber`가 인식을 실패함.
+- **해결**: `budget_parser.py`의 `clean_table()` 함수 내 예외 처리 로직에 해당 패턴을 추가하거나, 원본 데이터를 엑셀 형태로 변환하여 투입하십시오.
