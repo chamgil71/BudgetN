@@ -54,9 +54,10 @@ database
 !storage/cache/.gitkeep
 !storage/exports/.gitkeep
 !storage/logs/.gitkeep
+!database/.gitkeep
 !database/src/.gitkeep
 !database/raw/.gitkeep
-!database/tmp/.gitkeep
+!database/structure/.gitkeep
 !database/parse_result/.gitkeep
 !database/input/.gitkeep
 !database/output/.gitkeep
