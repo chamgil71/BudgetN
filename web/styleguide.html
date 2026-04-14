@@ -1,18 +1,28 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>CSS Compare Guide</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Style Guide</title>
+
+<link rel='stylesheet' href='css/main.css'>
+<link rel='stylesheet' href='css/theme-glassmorphism.css'>
 
 <style>
 body{
 font-family:system-ui;
-padding:20px;
-background:#f3f4f6;
+margin:20px;
 }
 
 .section{
-margin-bottom:60px;
+margin-bottom:50px;
+}
+
+.title{
+font-size:18px;
+font-weight:700;
+margin-bottom:8px;
 }
 
 .compare{
@@ -21,255 +31,136 @@ grid-template-columns:1fr 1fr;
 gap:20px;
 }
 
-iframe{
-width:100%;
-height:260px;
-border:1px solid #ccc;
-background:white;
+.label{
+font-size:12px;
+opacity:.6;
+margin-bottom:6px;
 }
 
-h2{
-margin-top:40px;
+.info{
+font-size:11px;
+font-family:monospace;
+white-space:pre-line;
+margin-top:6px;
+opacity:.8;
 }
 </style>
 
 </head>
 <body>
 
-<h1>CSS 비교 가이드</h1>
+<h1>CSS Style Guide</h1>
 
+<button onclick="document.body.classList.toggle('dark')">
+Dark Mode Toggle
+</button>
 
-<!-- HEADER -->
+<div id="app"></div>
+
+<script>
+
+const items = [
+"sidebar",
+"modal",
+"tabs",
+"pagination",
+"filter-bar",
+"search",
+"chart-container",
+"card",
+"badge",
+"dropdown"
+]
+
+function create(name){
+return `
 <div class="section">
-<h2>Header</h2>
+
+<div class="title">.${name}</div>
+
 <div class="compare">
 
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<header class="header">
-<div class="header-inner">
-<div class="header-title">
-<h1>Dashboard</h1>
-<span class="badge">LIVE</span>
+<div>
+<div class="label">main.css</div>
+<div class="${name}" data-style>
+${content(name)}
 </div>
-<div class="header-stats">Stats</div>
-</div>
-</header>
-'></iframe>
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="theme-glassmorphism.css">
-<header class="header">
-<div class="header-inner">
-<div class="header-title">
-<h1>Dashboard</h1>
-<span class="badge">LIVE</span>
-</div>
-<div class="header-stats">Stats</div>
-</div>
-</header>
-'></iframe>
-
-</div>
+<div class="info"></div>
 </div>
 
-
-<!-- SIDEBAR -->
-<div class="section">
-<h2>Sidebar</h2>
-<div class="compare">
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<div class="sidebar">
-<ul>
-<li>Overview</li>
-<li>Analytics</li>
-<li>Settings</li>
-</ul>
+<div>
+<div class="label">main + glass</div>
+<div class="${name} glass" data-style>
+${content(name)}
 </div>
-'></iframe>
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="theme-glassmorphism.css">
-<div class="sidebar">
-<ul>
-<li>Overview</li>
-<li>Analytics</li>
-<li>Settings</li>
-</ul>
-</div>
-'></iframe>
-
-</div>
+<div class="info"></div>
 </div>
 
-
-<!-- FILTER BAR -->
-<div class="section">
-<h2>Filter Bar</h2>
-<div class="compare">
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<div class="filter-bar">
-<input placeholder="Search...">
-<select>
-<option>All</option>
-<option>Active</option>
-</select>
-<button class="btn">Apply</button>
-</div>
-'></iframe>
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="theme-glassmorphism.css">
-<div class="filter-bar">
-<input placeholder="Search...">
-<select>
-<option>All</option>
-<option>Active</option>
-</select>
-<button class="btn">Apply</button>
-</div>
-'></iframe>
-
-</div>
 </div>
 
-
-<!-- SEARCH -->
-<div class="section">
-<h2>Search</h2>
-<div class="compare">
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<input class="search-input" placeholder="검색...">
-'></iframe>
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="theme-glassmorphism.css">
-<input class="search-input" placeholder="검색...">
-'></iframe>
-
 </div>
-</div>
+`
+}
 
+function content(name){
 
-<!-- CARD / CHART -->
-<div class="section">
-<h2>Chart Container</h2>
-<div class="compare">
+switch(name){
 
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<div class="card chart-container">
-<h3>Revenue</h3>
-<div style="height:120px;background:#ddd"></div>
-</div>
-'></iframe>
+case "tabs":
+return `
+<button class="tab active">Tab1</button>
+<button class="tab">Tab2</button>
+`
 
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="theme-glassmorphism.css">
-<div class="card chart-container">
-<h3>Revenue</h3>
-<div style="height:120px;background:#ddd"></div>
-</div>
-'></iframe>
-
-</div>
-</div>
-
-
-<!-- TABS -->
-<div class="section">
-<h2>Tabs</h2>
-<div class="compare">
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<div class="tabs">
-<button class="tab active">Overview</button>
-<button class="tab">Detail</button>
-</div>
-'></iframe>
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="theme-glassmorphism.css">
-<div class="tabs">
-<button class="tab active">Overview</button>
-<button class="tab">Detail</button>
-</div>
-'></iframe>
-
-</div>
-</div>
-
-
-<!-- PAGINATION -->
-<div class="section">
-<h2>Pagination</h2>
-<div class="compare">
-
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<div class="pagination">
+case "pagination":
+return `
 <button>1</button>
-<button>2</button>
+<button class="active">2</button>
 <button>3</button>
-</div>
-'></iframe>
+`
 
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="theme-glassmorphism.css">
-<div class="pagination">
-<button>1</button>
-<button>2</button>
-<button>3</button>
-</div>
-'></iframe>
+case "search":
+return `<input placeholder="search">`
 
-</div>
-</div>
+case "dropdown":
+return `
+<select>
+<option>Option1</option>
+<option>Option2</option>
+</select>
+`
 
+case "chart-container":
+return `Chart Area`
 
-<!-- MODAL -->
-<div class="section">
-<h2>Modal</h2>
-<div class="compare">
+default:
+return "sample"
+}
 
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<div class="modal" style="display:block;">
-<div class="modal-content">
-<h3>Modal</h3>
-<p>내용</p>
-</div>
-</div>
-'></iframe>
+}
 
-<iframe srcdoc='
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="theme-glassmorphism.css">
-<div class="modal" style="display:block;">
-<div class="modal-content">
-<h3>Modal</h3>
-<p>내용</p>
-</div>
-</div>
-'></iframe>
+document.getElementById("app").innerHTML =
+items.map(create).join("")
 
-</div>
-</div>
+function style(el){
 
+const s = getComputedStyle(el)
+
+return `
+bg: ${s.background}
+color: ${s.color}
+font: ${s.fontSize}
+radius: ${s.borderRadius}
+shadow: ${s.boxShadow}
+blur: ${s.backdropFilter}
+`
+}
+
+document.querySelectorAll("[data-style]").forEach(el=>{
+el.nextElementSibling.textContent = style(el)
+})
+
+</script>
 
 </body>
 </html>
