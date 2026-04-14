@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>CSS Compare Guide</title>
+
+<style>
+body{
+font-family:system-ui;
+padding:20px;
+background:#f3f4f6;
+}
+
+.section{
+margin-bottom:60px;
+}
+
+.compare{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+iframe{
+width:100%;
+height:260px;
+border:1px solid #ccc;
+background:white;
+}
+
+h2{
+margin-top:40px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>CSS 비교 가이드</h1>
+
+
+<!-- HEADER -->
+<div class="section">
+<h2>Header</h2>
+<div class="compare">
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<header class="header">
+<div class="header-inner">
+<div class="header-title">
+<h1>Dashboard</h1>
+<span class="badge">LIVE</span>
+</div>
+<div class="header-stats">Stats</div>
+</div>
+</header>
+'></iframe>
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="theme-glassmorphism.css">
+<header class="header">
+<div class="header-inner">
+<div class="header-title">
+<h1>Dashboard</h1>
+<span class="badge">LIVE</span>
+</div>
+<div class="header-stats">Stats</div>
+</div>
+</header>
+'></iframe>
+
+</div>
+</div>
+
+
+<!-- SIDEBAR -->
+<div class="section">
+<h2>Sidebar</h2>
+<div class="compare">
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<div class="sidebar">
+<ul>
+<li>Overview</li>
+<li>Analytics</li>
+<li>Settings</li>
+</ul>
+</div>
+'></iframe>
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="theme-glassmorphism.css">
+<div class="sidebar">
+<ul>
+<li>Overview</li>
+<li>Analytics</li>
+<li>Settings</li>
+</ul>
+</div>
+'></iframe>
+
+</div>
+</div>
+
+
+<!-- FILTER BAR -->
+<div class="section">
+<h2>Filter Bar</h2>
+<div class="compare">
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<div class="filter-bar">
+<input placeholder="Search...">
+<select>
+<option>All</option>
+<option>Active</option>
+</select>
+<button class="btn">Apply</button>
+</div>
+'></iframe>
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="theme-glassmorphism.css">
+<div class="filter-bar">
+<input placeholder="Search...">
+<select>
+<option>All</option>
+<option>Active</option>
+</select>
+<button class="btn">Apply</button>
+</div>
+'></iframe>
+
+</div>
+</div>
+
+
+<!-- SEARCH -->
+<div class="section">
+<h2>Search</h2>
+<div class="compare">
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<input class="search-input" placeholder="검색...">
+'></iframe>
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="theme-glassmorphism.css">
+<input class="search-input" placeholder="검색...">
+'></iframe>
+
+</div>
+</div>
+
+
+<!-- CARD / CHART -->
+<div class="section">
+<h2>Chart Container</h2>
+<div class="compare">
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<div class="card chart-container">
+<h3>Revenue</h3>
+<div style="height:120px;background:#ddd"></div>
+</div>
+'></iframe>
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="theme-glassmorphism.css">
+<div class="card chart-container">
+<h3>Revenue</h3>
+<div style="height:120px;background:#ddd"></div>
+</div>
+'></iframe>
+
+</div>
+</div>
+
+
+<!-- TABS -->
+<div class="section">
+<h2>Tabs</h2>
+<div class="compare">
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<div class="tabs">
+<button class="tab active">Overview</button>
+<button class="tab">Detail</button>
+</div>
+'></iframe>
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="theme-glassmorphism.css">
+<div class="tabs">
+<button class="tab active">Overview</button>
+<button class="tab">Detail</button>
+</div>
+'></iframe>
+
+</div>
+</div>
+
+
+<!-- PAGINATION -->
+<div class="section">
+<h2>Pagination</h2>
+<div class="compare">
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<div class="pagination">
+<button>1</button>
+<button>2</button>
+<button>3</button>
+</div>
+'></iframe>
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="theme-glassmorphism.css">
+<div class="pagination">
+<button>1</button>
+<button>2</button>
+<button>3</button>
+</div>
+'></iframe>
+
+</div>
+</div>
+
+
+<!-- MODAL -->
+<div class="section">
+<h2>Modal</h2>
+<div class="compare">
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<div class="modal" style="display:block;">
+<div class="modal-content">
+<h3>Modal</h3>
+<p>내용</p>
+</div>
+</div>
+'></iframe>
+
+<iframe srcdoc='
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="theme-glassmorphism.css">
+<div class="modal" style="display:block;">
+<div class="modal-content">
+<h3>Modal</h3>
+<p>내용</p>
+</div>
+</div>
+'></iframe>
+
+</div>
+</div>
+
+
+</body>
+</html>

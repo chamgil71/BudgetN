@@ -52,19 +52,34 @@ window.initDashboard = function () {
         const calculatedSubs = projects.reduce((s, p) => s + (p.sub_projects?.length || 0), 0);
         if (statSubs) statSubs.textContent = formatNumber(calculatedSubs);
 
-        // Populate Selects
+        // Populate Selects (요소가 있을 때만 실행하도록 방어 로직 추가)
         const depts = [...new Set(projects.map(p => p.department))].sort();
         if (typeof populateSelect === 'function') {
-            populateSelect('dept-select', depts);
-            populateSelect('project-dept-filter', depts);
+            if (document.getElementById('dept-select')) {
+                populateSelect('dept-select', depts);
+            }
+            if (document.getElementById('project-dept-filter')) {
+                populateSelect('project-dept-filter', depts);
+            }
         }
 
         // Initialize Tab Navigation & Hash
         if (typeof initTabNavigation === 'function') initTabNavigation();
+        
+        // ★ 핵심: 현재 열린 파일이 index.html인지 duplicate.html인지 구분
+        const isDuplicatePage = document.getElementById('dup-sub-overview') !== null;
+
         if (typeof restoreFromHash === 'function') {
             restoreFromHash();
-        } else if (typeof renderOverview === 'function') {
-            renderOverview();
+        } else {
+            // 페이지에 맞게 함수를 골라서 실행
+            if (isDuplicatePage && typeof initDuplicateTab === 'function') {
+                // duplicate.html 이면 유사성 분석 초기화
+                initDuplicateTab();
+            } else if (!isDuplicatePage && typeof renderOverview === 'function') {
+                // index.html 이면 개요(Overview) 차트 렌더링
+                renderOverview();
+            }
         }
 
         // Search Event

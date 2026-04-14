@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIPA 사업분석 플랫폼(테스트중)</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <link href="css/main.css" rel="stylesheet">
+  <link id="theme-link" rel="stylesheet" href="">
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+
+  <header class="header" role="banner">
+    <div class="header-inner">
+      <div class="header-title">
+        <h1><span class="dyn-year">2026</span> NIPA 사업분석 플랫폼(테스트중)</h1>
+        <span class="badge">AI-Native Budget Analytics</span>
+      </div>
+      <div class="header-stats">
+        <div class="header-stat"><div class="value" id="stat-projects">-</div><div class="label">총 사업</div></div>
+        <div class="header-stat"><div class="value" id="stat-budget">-</div><div class="label">총 예산</div></div>
+        <div class="header-stat"><div class="value" id="stat-depts">-</div><div class="label">부처</div></div>
+        <div class="header-stat"><div class="value" id="stat-subs">-</div><div class="label">내역사업</div></div>
+        
+        <div class="header-dropdown" style="position:relative">
+          <button class="theme-toggle" onclick="toggleDocMenu(event)" title="문서/내보내기" id="doc-menu-btn">
+            <span class="label">문서 &#9662;</span>
+          </button>
+          <div class="doc-menu" id="doc-menu" role="menu" style="display:none;position:absolute;top:100%;right:0;margin-top:4px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:200px;z-index:9999;">
+            <button role="menuitem" onclick="generatePrintReport();closeDocMenu()" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:none;color:var(--text);cursor:pointer;font-size:14px;text-align:left">
+              <span>&#128438;</span> 인쇄용 리포트
+            </button>
+            <div style="height:1px;background:var(--border);margin:2px 8px"></div>
+            <div style="padding:6px 16px 2px;font-size:11px;color:var(--text-muted);font-weight:600;">보고서 내보내기</div>
+            <button role="menuitem" onclick="generatePDFReport();closeDocMenu()" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:none;color:var(--text);cursor:pointer;font-size:14px;text-align:left">
+              <span>&#128206;</span> PDF 보고서
+            </button>
+            <button role="menuitem" onclick="downloadMarkdown();closeDocMenu()" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:none;color:var(--text);cursor:pointer;font-size:14px;text-align:left">
+              <span>&#128196;</span> 예산서 Markdown
+            </button>
+            <div style="height:1px;background:var(--border);margin:2px 8px"></div>
+            <button role="menuitem" onclick="openNotesManager();closeDocMenu()" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:none;color:var(--text);cursor:pointer;font-size:14px;text-align:left">
+              <span>&#128221;</span> 메모 관리
+            </button>
+          </div>
+        </div>
+        <select class="theme-toggle" id="theme-selector" onchange="changeAppTheme(this.value)" style="margin:0 4px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; color:#fff; cursor:pointer; font-size:12px; height:32px; padding:0 8px;">
+          <option value="default" style="background:var(--bg-secondary); color:var(--text-primary)">기본 테마</option>
+          <option value="theme-toss" style="background:var(--bg-secondary); color:var(--text-primary)">Toss 스타일</option>
+          <option value="theme-neumorphism" style="background:var(--bg-secondary); color:var(--text-primary)">뉴모피즘</option>
+        </select>
+        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="테마 전환">
+          <span id="theme-icon">&#9790;</span><span class="label" id="theme-label">다크</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tab-nav">
+    <div class="tab-nav-inner" role="tablist" aria-label="분석 탭">
+      <button role="tab" aria-selected="true" aria-controls="tab-overview" class="tab-btn active" data-tab="overview">개요</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-department" class="tab-btn" data-tab="department">부처별 분석</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-field" class="tab-btn" data-tab="field">분야별 분석</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-projects" class="tab-btn" data-tab="projects">사업 목록</button>
+    </div>
+  </nav>
+
+  <main class="main" id="main-content" role="main">
+    <div class="tab-content active" id="tab-overview" role="tabpanel" aria-labelledby="tab-btn-overview">
+      <div class="filter-bar" style="margin-bottom:12px">
+        <input type="text" class="search-input" id="overview-search" placeholder="키워드 검색 (예: 로봇, 과기부 반도체)..." style="flex:2">
+        <span id="overview-search-count" style="font-size:13px;color:var(--text-muted);white-space:nowrap"></span>
+      </div>
+      
+      <div class="kpi-grid" id="kpi-grid"></div>
+      
+      <div class="grid-3">
+        <div class="card"><div class="card-title">부처별 예산 비중 (상위 10)</div><div class="chart-container"><canvas id="chart-dept-donut"></canvas></div></div>
+        <div class="card"><div class="card-title">사업 유형 분포</div><div class="chart-container"><canvas id="chart-type-dist"></canvas></div></div>
+        <div class="card"><div class="card-title">회계유형별 예산 구성</div><div class="chart-container"><canvas id="chart-account-type"></canvas></div></div>
+      </div>
+      
+      <div class="grid-3">
+        <div class="card"><div class="card-title">예산 증가 Top 10</div><div class="chart-container"><canvas id="chart-top-increase"></canvas></div></div>
+        <div class="card"><div class="card-title">예산 감소 Top 10</div><div class="chart-container"><canvas id="chart-top-decrease"></canvas></div></div>
+        <div class="card"><div class="card-title">예산 증감률 분포</div><div class="chart-container"><canvas id="chart-change-dist"></canvas></div></div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card"><div class="card-title">AI 분야별 예산 버블차트</div><div class="chart-container" style="height:380px"><canvas id="chart-field-bubble"></canvas></div></div>
+        <div class="card" style="grid-column:span 2"><div class="card-title">연도별 예산 변화 워터폴</div><div class="chart-container" style="height:380px"><canvas id="chart-waterfall"></canvas></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">AI 도메인 × 부처 히트맵</div>
+        <div id="domain-heatmap-container" style="overflow-x:auto;"></div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card" style="grid-column:span 2"><div class="card-title">이상치 사업 (증감률 ±50% 이상)</div><div id="anomaly-list-container" style="max-height:500px;overflow-y:auto"></div></div>
+        <div class="card"><div class="card-title">예산 집중도 (HHI 분석)</div><div id="hhi-container"></div><div class="chart-container" style="height:260px"><canvas id="chart-hhi-dept"></canvas></div></div>
+      </div>
+      
+      <div class="card" style="margin-top:0">
+        <div class="card-title">낭비 리스크 분석</div>
+        <div id="waste-risk-container"></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-department" role="tabpanel" aria-labelledby="tab-btn-department">
+      <div class="filter-bar"><select id="dept-select"><option value="">부처 선택...</option></select></div>
+      <div class="grid-2">
+        <div class="card"><div class="card-title">부처별 예산 규모</div><div class="chart-container"><canvas id="chart-dept-bar"></canvas></div></div>
+        <div class="card"><div class="card-title">사업 수 vs 예산 규모</div><div class="chart-container" style="min-height:280px;"><div id="scatter-container" style="width:100%;height:280px;"></div></div></div>
+      </div>
+      <div class="card"><div class="card-title">부처별 예산 증감률</div><div class="chart-container"><canvas id="chart-dept-change"></canvas></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-field" role="tabpanel" aria-labelledby="tab-btn-field">
+      <div class="card"><div class="card-title">AI 분야별 예산 트리맵</div><div id="treemap-container" style="position:relative;height:500px;"></div></div>
+      <div class="card"><div class="card-title">분야-부처 교차 분석</div><div id="field-heatmap-container" style="overflow-x:auto;"></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-projects" role="tabpanel" aria-labelledby="tab-btn-projects">
+      <div class="filter-bar">
+        <input type="text" class="search-input" id="project-search" placeholder="통합 검색 (사업명, 키워드)..." aria-label="사업 검색">
+        <select id="project-dept-filter"><option value="">전체 부처</option></select>
+        <select id="project-type-filter"><option value="">전체 유형</option><option value="rnd">R&D</option><option value="info">정보화</option></select>
+        <select id="project-field-filter"><option value="">전체 분야</option></select>
+        <select id="project-sort">
+          <option value="budget-desc">예산순(내림차순)</option>
+          <option value="change-desc">증감률 높은순</option>
+          <option value="name">사업명순</option>
+        </select>
+        <button class="btn-export" onclick="exportProjectCSV()">CSV 다운로드</button>
+      </div>
+      <div id="project-count" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;"></div>
+      <div id="project-list-container"></div>
+      <div class="pagination" id="project-pagination"></div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="project-modal">
+    <div class="modal" id="modal-content"></div>
+  </div>
+
+  <div class="modal-overlay" id="chart-expand-modal" style="display:none">
+    <div class="modal" style="max-width:95vw;width:95vw;max-height:92vh;padding:20px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 id="chart-expand-title" style="margin:0;font-size:16px"></h3>
+        <button class="modal-close" onclick="closeChartExpand()">&times;</button>
+      </div>
+      <div id="chart-expand-body" style="width:100%;height:calc(92vh - 80px);overflow:auto;position:relative"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="press-report-modal">
+    <div class="modal" style="max-width:720px;width:90vw;max-height:90vh;padding:24px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0;font-size:18px">보도자료용 통계</h3>
+        <button class="modal-close" onclick="closePressReport()">&times;</button>
+      </div>
+      <div id="press-report-content" style="overflow-y:auto;max-height:calc(90vh - 120px);background:var(--bg-primary);padding:16px;border-radius:8px;border:1px solid var(--border)"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="notes-manager-modal">
+    <div class="modal" style="max-width:800px;width:90vw;max-height:90vh;padding:24px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0;font-size:18px">&#128221; 메모 관리</h3>
+        <button class="modal-close" onclick="closeNotesManager()">&times;</button>
+      </div>
+      <div id="notes-manager-content" style="overflow-y:auto;max-height:calc(90vh - 160px)"></div>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script src="js/embedded-data.js"></script>
+
+  <script src="js/common.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/tabs/department.js"></script>
+  <script src="js/tabs/field.js"></script>
+  <script src="js/tab-handler.js"></script>
+  <script src="js/budget-advanced.js"></script>
+  <script src="js/report-logic.js"></script>
+  <script src="js/notes-pdf.js"></script>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

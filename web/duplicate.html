@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIPA 사업 유사성 분석 플랫폼</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <link href="css/policy-cluster.css" rel="stylesheet">
+  <link href="css/future-sim.css" rel="stylesheet">
+  <link href="css/cross-compare.css" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
+</head>
+
+<body>
+  <header class="header" role="banner">
+    <div class="header-inner">
+      <div class="header-title">
+        <h1><span class="dyn-year">2026</span> NIPA 사업 유사성 분석 플랫폼</h1>
+        <span class="badge">Similarity Analytics Mode</span>
+      </div>
+      <div class="header-stats">
+        <div class="header-stat">
+          <div class="value" id="stat-projects">-</div>
+          <div class="label">총 사업</div>
+        </div>
+        <div class="header-stat">
+          <div class="value" id="stat-budget">-</div>
+          <div class="label">총 예산</div>
+        </div>
+        <a class="theme-toggle" href="index.html" style="text-decoration:none; margin-right:10px;">
+          <span class="label">🏠 메인으로</span>
+        </a>
+        <select class="theme-toggle" id="theme-selector" onchange="changeAppTheme(this.value)" style="margin:0 4px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; color:#fff; cursor:pointer; font-size:12px; height:32px; padding:0 8px;">
+          <option value="theme-toss">Toss 스타일</option>
+          <option value="default">기본 테마</option>
+          <option value="theme-neumorphism">뉴모피즘</option>
+          <option value="theme-glassmorphism">글래스모피즘</option>
+        </select>
+        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="테마 전환">
+          <span id="theme-icon">&#9790;</span>
+          <span class="label" id="theme-label">다크</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tab-nav">
+    <div class="tab-nav-inner">
+      <button class="tab-btn active">유사성 분석 전용 모드</button>
+    </div>
+  </nav>
+
+  <main class="main" id="main-content">
+    <div class="tab-content active" id="tab-duplicate">
+      <div class="dup-sub-tabs">
+        <button class="dup-sub-tab active" data-subtab="overview" onclick="switchDupSubTab('overview')">유사/중복 개요</button>
+        <button class="dup-sub-tab" data-subtab="keyword-search" onclick="switchDupSubTab('keyword-search')">키워드 유사성 검색</button>
+        <button class="dup-sub-tab" data-subtab="sim-explorer" onclick="switchDupSubTab('sim-explorer')">유사 사업 탐색기</button>
+        <button class="dup-sub-tab" data-subtab="auto-scan" onclick="switchDupSubTab('auto-scan')">자동 스캔</button>
+        <button class="dup-sub-tab" data-subtab="network" onclick="switchDupSubTab('network')">네트워크</button>
+        <button class="dup-sub-tab" data-subtab="similarity-v10" onclick="switchDupSubTab('similarity-v10')">유사/중복(인력양성)</button>
+        <button class="dup-sub-tab" data-subtab="collaboration" onclick="switchDupSubTab('collaboration')">협업가능성</button>
+        <button class="dup-sub-tab" data-subtab="hybrid" onclick="switchDupSubTab('hybrid')">하이브리드(이전)</button>
+        <button class="dup-sub-tab" data-subtab="help" onclick="switchDupSubTab('help')" style="margin-left:auto;">도움말</button>
+      </div>
+
+      <div class="dup-sub-content active" id="dup-sub-overview">
+        <div class="kpi-grid dup-kpi-compact" id="dup-kpi-grid"></div>
+        <div class="grid-3" id="dup-bi-widgets" style="margin-bottom:20px;overflow:hidden">
+          <div class="card" id="dup-heatmap-card">
+            <div class="card-title">부처간 중복 예산 히트맵</div>
+            <div id="dup-heatmap-container" style="height:420px;overflow:auto"></div>
+          </div>
+          <div class="card" id="dup-scorecard-card">
+            <div class="card-title">통합 우선순위 스코어카드</div>
+            <div id="dup-scorecard-container" style="height:340px;overflow:auto"></div>
+          </div>
+          <div class="card" id="dup-bubble-card">
+            <div class="card-title">중복 도메인 버블차트</div>
+            <div style="position:relative;height:320px"><canvas id="chart-dup-bubble"></canvas></div>
+          </div>
+          <div class="card" id="dup-savings-card">
+            <div class="card-title">예산 절감 시뮬레이터</div>
+            <div id="dup-savings-container" style="height:360px;overflow:auto"></div>
+          </div>
+          <div class="card" id="dup-portfolio-card">
+            <div class="card-title">부처별 중복 포트폴리오</div>
+            <div id="dup-portfolio-container" style="height:340px;overflow:hidden">
+              <select id="dup-portfolio-dept" style="width:100%;padding:6px;margin-bottom:8px;background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:4px">
+                <option value="">부처 선택</option>
+              </select>
+              <div style="position:relative;height:280px"><canvas id="chart-dup-radar"></canvas></div>
+            </div>
+          </div>
+          <div class="card" id="dup-taxonomy-card">
+            <div class="card-title">중복 유형 분류 대시보드</div>
+            <div id="dup-taxonomy-container" style="height:360px;overflow:auto">
+              <div style="position:relative;height:190px"><canvas id="chart-dup-taxonomy"></canvas></div>
+              <div id="dup-taxonomy-detail" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" id="legal-basis-dup-card" style="margin-bottom:20px">
+          <div class="card-title">법적 근거 기반 중복 탐지</div>
+          <div id="legal-basis-dup-container" style="overflow:auto;max-height:500px"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:12px;color:var(--text-secondary)">중복 그룹 정렬:</span>
+          <select id="dup-group-sort" onchange="sortAndRerenderDupGroups()">
+            <option value="budget-desc">예산순</option>
+            <option value="count-desc" selected>사업수순</option>
+            <option value="dept-desc">부처수순</option>
+          </select>
+        </div>
+        <div id="dup-groups-container"></div>
+      </div>
+
+      <div class="dup-sub-content" id="dup-sub-keyword-search" style="display:none">
+        <div class="filter-bar"><input type="text" class="search-input" id="dup-search" placeholder="검색어 입력..."><button class="btn-export" onclick="filterDupGroups()">검색</button></div>
+        <div id="dup-search-similarity"></div>
+      </div>
+      <div class="dup-sub-content" id="dup-sub-sim-explorer" style="display:none"><div id="sim-explorer-list"></div></div>
+      <div class="dup-sub-content" id="dup-sub-auto-scan" style="display:none"><div id="auto-scan-results"></div></div>
+      <div class="dup-sub-content" id="dup-sub-network" style="display:none"><svg id="network-svg" style="width:100%;height:600px;"></svg></div>
+      <div class="dup-sub-content" id="dup-sub-similarity-v10" style="display:none"><div id="sim-v10-pairs"></div></div>
+      <div class="dup-sub-content" id="dup-sub-collaboration" style="display:none"><div id="collab-pairs"></div></div>
+      <div class="dup-sub-content" id="dup-sub-hybrid" style="display:none"><div id="hybrid-pairs"></div></div>
+      <div class="dup-sub-content" id="dup-sub-help" style="display:none"> 도움말 준비 중... </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="sim-compare-modal">
+    <div class="modal" style="max-width:95vw;width:1100px;max-height:92vh;padding:0;position:relative">
+      <div id="sim-compare-content" style="overflow-y:auto;max-height:92vh;padding:24px"></div>
+    </div>
+  </div>
+
+  <script src="js/embedded-data.js"></script>
+  <script src="js/embedded-sim-v10-data.js"></script>
+  <script src="js/embedded-collab-data.js"></script>
+  <script src="js/embedded-hybrid-data.js"></script>
+
+  <script src="js/common.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/tabs/duplicate.js"></script>
+  <script src="js/budget-advanced.js"></script>
+  <script src="js/network-viz.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // 데이터 로딩 완료 후 강제 렌더링
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            if (typeof initDuplicateTab === 'function') initDuplicateTab();
+            if (typeof switchDupSubTab === 'function') switchDupSubTab('overview');
+        }, 300);
+    });
+  </script>
+</body>
+</html>
