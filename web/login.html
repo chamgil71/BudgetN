@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"> <title>BudgetN - 로그인</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h2>BudgetN 로그인</h2>
+    <input type="email" id="email" placeholder="이메일">
+    <input type="password" id="password" placeholder="비밀번호">
+    <button onclick="signIn()">로그인</button>
+
+    <script>
+        (function() {
+            const url = '%VITE_SUPABASE_URL%';
+            const key = '%VITE_SUPABASE_ANON_KEY%';
+            
+            // 변수명을 authClient로 바꿔서 중복 선언 에러를 방지합니다.
+            const lib = window.supabase || window.supabasejs;
+            window.authClient = lib.createClient(url, key);
+        })();
+
+        async function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // authClient를 사용하여 로그인 시도
+            const { data, error } = await window.authClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                alert("로그인 실패: " + error.message);
+            } else {
+                alert("로그인 성공!");
+                window.location.replace("index.html");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIPA 사업분석 플랫폼(테스트중)</title>
+  <link
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link href="css/policy-cluster.css" rel="stylesheet">
+  <link href="css/future-sim.css" rel="stylesheet">
+  <link href="css/cross-compare.css" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
+
+  <link id="theme-link" rel="stylesheet" href="">
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+
+  <header class="header" role="banner">
+    <div class="header-inner">
+      <div class="header-title">
+        <h1><span class="dyn-year">2026</span> NIPA 사업분석 플랫폼(테스트중)</h1>
+        <span class="badge">AI-Native Budget Analytics</span>
+      </div>
+      <div class="header-stats">
+        <div class="header-stat">
+          <div class="value" id="stat-projects">-</div>
+          <div class="label">총 사업</div>
+        </div>
+        <div class="header-stat">
+          <div class="value" id="stat-budget">-</div>
+          <div class="label">총 예산</div>
+        </div>
+        <div class="header-stat">
+          <div class="value" id="stat-depts">-</div>
+          <div class="label">부처</div>
+        </div>
+        <div class="header-stat">
+          <div class="value" id="stat-subs">-</div>
+          <div class="label">내역사업</div>
+        </div>
+        <a class="theme-toggle" href="https://github.com/hollobit/KAIB2026" target="_blank" rel="noopener"
+          title="GitHub 저장소" style="text-decoration:none">
+          <span><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z" />
+            </svg></span>
+          <span class="label">GitHub</span>
+        </a>
+        <div class="header-dropdown" style="position:relative">
+          <button class="theme-toggle" onclick="toggleDocMenu(event)" title="문서/내보내기" aria-label="문서 및 내보내기 메뉴"
+            aria-haspopup="true" aria-expanded="false" id="doc-menu-btn">
+            <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg></span>
+            <span class="label">문서 &#9662;</span>
+          </button>
+          <div class="doc-menu" id="doc-menu" role="menu"
+            style="display:none;position:absolute;top:100%;right:0;margin-top:4px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:200px;z-index:9999;overflow:hidden;backdrop-filter:none">
+            <button role="menuitem" onclick="generatePrintReport();closeDocMenu()"
+              style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:none;color:var(--text);cursor:pointer;font-size:14px;text-align:left"
+              onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='none'">
+              <span style="font-size:16px">&#128438;</span> 인쇄용 리포트
+            </button>
+            <div style="height:1px;background:var(--border);margin:2px 8px"></div>
+            <div
+              style="padding:6px 16px 2px;font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.5px">
+              보고서 내보내기</div>
+            <button role="menuitem" onclick="generatePDFReport();closeDocMenu()"
+              style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:none;color:var(--text);cursor:pointer;font-size:14px;text-align:left"
+              onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='none'">
+              <span style="font-size:16px">&#128206;</span> PDF 보고서
+            </button>
+            <button role="menuitem" onclick="downloadMarkdown();closeDocMenu()"
+              style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:none;color:var(--text);cursor:pointer;font-size:14px;text-align:left"
+              onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='none'">
+              <span style="font-size:16px">&#128196;</span> 예산서 Markdown
+            </button>
+            <div style="height:1px;background:var(--border);margin:2px 8px"></div>
+            <button role="menuitem" onclick="openNotesManager();closeDocMenu()"
+              style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:none;color:var(--text);cursor:pointer;font-size:14px;text-align:left"
+              onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='none'">
+              <span style="font-size:16px">&#128221;</span> 메모 관리
+            </button>
+          </div>
+        </div>
+        <select class="theme-toggle" id="theme-selector" onchange="changeAppTheme(this.value)" style="margin:0 4px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; color:#fff; cursor:pointer; font-size:12px; height:32px; padding:0 8px; appearance:auto; -webkit-appearance:auto;">
+          <option value="theme-toss" style="background:var(--bg-secondary); color:var(--text-primary)">Toss 스타일</option>
+          <option value="default" style="background:var(--bg-secondary); color:var(--text-primary)">기본 테마</option>
+          <option value="theme-neumorphism" style="background:var(--bg-secondary); color:var(--text-primary)">뉴모피즘</option>
+          <option value="theme-glassmorphism" style="background:var(--bg-secondary); color:var(--text-primary)">글래스모피즘</option>
+        </select>
+        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="테마 전환">
+          <span id="theme-icon">&#9790;</span>
+          <span class="label" id="theme-label">다크</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tab-nav">
+    <div class="tab-nav-inner" role="tablist" aria-label="분석 탭">
+      <button role="tab" aria-selected="true" aria-controls="tab-overview" class="tab-btn active"
+        data-tab="overview">개요</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-department" class="tab-btn" data-tab="department">부처별
+        분석</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-field" class="tab-btn" data-tab="field">분야별
+        분석</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-duplicate" class="tab-btn" data-tab="duplicate">유사성
+        분석</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-projects" class="tab-btn" data-tab="projects">사업
+        목록</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-policy" class="tab-btn" data-tab="policy">정책
+        클러스터</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-cross-compare" class="tab-btn"
+        data-tab="cross-compare">비교 분석</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-future" class="tab-btn" data-tab="future">미래 예산
+        시뮬레이터</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-insight" class="tab-btn" data-tab="insight">예산
+        인사이트</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-ai-tech" class="tab-btn" data-tab="ai-tech">AI 기술
+        분석</button>
+    </div>
+  </nav>
+
+  <main class="main" id="main-content" role="main">
+    <!-- Overview Tab -->
+    <div class="tab-content active" id="tab-overview" role="tabpanel" aria-labelledby="tab-btn-overview">
+      <div
+        style="background:var(--yellow-dim);border:1px solid var(--yellow);border-radius:var(--radius);padding:12px 16px;margin-bottom:12px;font-size:13px;color:var(--text-primary);line-height:1.7">
+        <strong style="color:var(--yellow)">안내</strong>&nbsp; 이 페이지는 국내 예산 내역 분석을 통해 AI 관련 예산 및 중복 사업 등을 알아보기 위해 개인이 만든
+        분석용 페이지일 뿐 공식 페이지가 아닙니다. 당연히 공식은 아니지... 해보려고... 만든 페이지입니다.
+      </div>
+      <div class="filter-bar" style="margin-bottom:12px">
+        <input type="text" class="search-input" id="overview-search" placeholder="키워드 검색 (예: 로봇, 과기부 반도체, 클라우드 보안)..."
+          style="flex:2">
+        <span id="overview-search-count" style="font-size:13px;color:var(--text-muted);white-space:nowrap"></span>
+      </div>
+      <div style="font-size:11px; color:var(--text-secondary); margin-bottom:14px; margin-top:-6px; padding-left:4px;">
+        💡 사업명, 부처명, AI분야, 사업내용, 지정 키워드 등 <b>전체 텍스트 통합 검색</b> (띄어쓰기로 <code>AND</code>, 기호 <code>-</code>로 단어 <code>제외</code> 기법 완벽 지원)
+      </div>
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <!-- Row 1: 부처도넛 / 유형분포 / 회계유형 -->
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">부처별 예산 비중 (상위 10)</div>
+          <div class="chart-container"><canvas id="chart-dept-donut"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">사업 유형 분포 (R&D / 정보화 / 일반)</div>
+          <div class="chart-container"><canvas id="chart-type-dist"></canvas></div>
+          <details style="margin-top:8px;font-size:12px;color:var(--text-secondary);line-height:1.7;cursor:pointer">
+            <summary style="font-weight:700;color:var(--red)">R&D 예산 차이 안내 (공식 9.9조 vs 본 시스템 10.1조)</summary>
+            <div style="margin-top:6px;padding:8px 10px;background:var(--bg-primary);border-radius:8px">
+              공식 집계 "9.9조"와 본 시스템의 "10.1조" 사이 약 1,500~2,000억원 차이는 다음 원인들이 복합적으로 작용한 결과입니다.
+              <ol style="margin:6px 0 0 16px;padding:0">
+                <li><strong>분류 기준 차이</strong>: 본 시스템은 사업명에 (R&amp;D) 접미사가 있으면 해당 사업의 전체 예산을 R&amp;D로 잡습니다. 그러나 공식 집계에서는
+                  하나의 세부사업 내에서도 R&amp;D 목적 경비만 분리하여 집계할 수 있습니다.</li>
+                <li><strong>(R&amp;D,정보화) 중복 사업 2건 (1,846억원)</strong>: SW컴퓨팅산업원천기술개발과 정보보호핵심원천기술개발은 R&amp;D와 정보화 양쪽 성격을
+                  가지나, 본 시스템에서는 전액 R&amp;D로 계상합니다. 공식 집계에서는 일부가 정보화로 분리될 수 있습니다.</li>
+                <li><strong>예산 기준 시점</strong>: 본 데이터의 2025 기준이 본예산(19.08조) vs 추경(21.39조)으로 나뉘며, 메타데이터에는 21.71조로 별도 기록되어
+                  있어 기준 시점에 따라 증감액 산정이 달라집니다.</li>
+              </ol>
+            </div>
+          </details>
+        </div>
+        <div class="card">
+          <div class="card-title">회계유형별 예산 구성</div>
+          <div class="chart-container"><canvas id="chart-account-type"></canvas></div>
+        </div>
+      </div>
+      <!-- Row 2: 증가Top10 / 감소Top10 / 증감률분포 -->
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">예산 증가 Top 10</div>
+          <div class="chart-container"><canvas id="chart-top-increase"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">예산 감소 Top 10</div>
+          <div class="chart-container"><canvas id="chart-top-decrease"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">예산 증감률 분포</div>
+          <div class="chart-container"><canvas id="chart-change-dist"></canvas></div>
+        </div>
+      </div>
+      <!-- Row 3: 신규vs계속 / 예산규모 / 요구vs편성 -->
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">신규 vs 계속 사업 분포</div>
+          <div class="chart-container"><canvas id="chart-status-dist"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">예산 규모별 사업 분포</div>
+          <div class="chart-container"><canvas id="chart-budget-hist"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">예산 요구액 vs 편성액 비교</div>
+          <div class="chart-container"><canvas id="chart-req-vs-budget"></canvas></div>
+        </div>
+      </div>
+      <!-- Row 4: AI버블 / 워터폴 (2:1) -->
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">AI 분야별 예산 버블차트</div>
+          <div class="chart-container" style="height:380px"><canvas id="chart-field-bubble"></canvas></div>
+        </div>
+        <div class="card" style="grid-column:span 2">
+          <div class="card-title">연도별 예산 변화 워터폴 (부처별 증감 기여)</div>
+          <div class="chart-container" style="height:380px"><canvas id="chart-waterfall"></canvas></div>
+        </div>
+      </div>
+      <!-- Row 5: 포트폴리오 / 신규사업 (2:1) -->
+      <div class="grid-3">
+        <div class="card" style="grid-column:span 2">
+          <div class="card-title">부처별 사업 포트폴리오 (R&D / 정보화 / 일반)</div>
+          <div class="chart-container" style="height:460px"><canvas id="chart-dept-portfolio"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">부처별 신규사업 투자 현황</div>
+          <div class="chart-container" style="height:460px"><canvas id="chart-new-projects"></canvas></div>
+        </div>
+      </div>
+      <!-- Row 6: AI 도메인 히트맵 (full width) -->
+      <div class="card">
+        <div class="card-title">AI 도메인 × 부처 히트맵</div>
+        <div id="domain-heatmap-container" style="overflow-x:auto;"></div>
+      </div>
+      <!-- Row 7: 내역사업 심층 분석 -->
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">내역사업 예산 규모 분포</div>
+          <div class="chart-container"><canvas id="chart-sub-hist"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">사업 내 내역사업 집중도 TOP 20</div>
+          <div class="chart-container" style="height:380px"><canvas id="chart-concentration"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">부처별 내역사업 현황</div>
+          <div class="chart-container" style="height:380px"><canvas id="chart-sub-dept"></canvas></div>
+        </div>
+      </div>
+      <!-- Row 8: 이상치 탐지 -->
+      <div class="grid-3">
+        <div class="card" style="grid-column:span 2">
+          <div class="card-title">이상치 사업 (증감률 ±50% 이상)</div>
+          <div id="anomaly-list-container" style="max-height:500px;overflow-y:auto"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">증감률 이상치 분포</div>
+          <div class="chart-container" style="height:380px"><canvas id="chart-anomaly-hist"></canvas></div>
+        </div>
+      </div>
+      <!-- Row 9: 예산 집중도 / 사업 규모 분포 -->
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">예산 집중도 (HHI 분석)</div>
+          <div id="hhi-container"></div>
+          <div class="chart-container" style="height:260px"><canvas id="chart-hhi-dept"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">분야별 예산 집중도</div>
+          <div id="hhi-field-container"></div>
+          <div class="chart-container" style="height:260px"><canvas id="chart-hhi-field"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">사업 규모 분포 분석</div>
+          <div id="budget-dist-stats" style="margin-bottom:8px"></div>
+          <div class="chart-container" style="height:280px"><canvas id="chart-budget-dist-detail"></canvas></div>
+        </div>
+      </div>
+      <!-- Row 10: 낭비 리스크 분석 -->
+      <div class="card" style="margin-top:0">
+        <div class="card-title">낭비 리스크 분석</div>
+        <div id="waste-risk-container"></div>
+      </div>
+      <!-- Row 11: 글로벌 AI 예산 벤치마크 -->
+      <div class="card" style="margin-top:0">
+        <div class="card-title">글로벌 AI 예산 벤치마크</div>
+        <div class="grid-2" style="gap:16px">
+          <div><canvas id="chart-global-budget" style="max-height:360px"></canvas></div>
+          <div><canvas id="chart-global-gdp" style="max-height:360px"></canvas></div>
+        </div>
+        <div id="global-benchmark-tags" style="margin-top:12px"></div>
+        <details style="margin-top:10px;font-size:12px;color:var(--text-secondary);line-height:1.7;cursor:pointer">
+          <summary style="font-weight:600">데이터 출처 및 참고사항</summary>
+          <div style="margin-top:6px;padding:8px 10px;background:var(--bg-primary);border-radius:8px">
+            참고용 추정치이며 각국 공식 통계와 차이가 있을 수 있습니다. (출처: OECD AI Policy Observatory, Stanford AI Index 2024 참고)
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Department Tab -->
+    <div class="tab-content" id="tab-department" role="tabpanel" aria-labelledby="tab-btn-department">
+      <div class="filter-bar">
+        <select id="dept-select">
+          <option value="">부처 선택...</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">부처별 예산 규모</div>
+          <div class="chart-container"><canvas id="chart-dept-bar"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">사업 수 vs 예산 규모</div>
+          <div class="chart-container" style="min-height:280px;">
+            <div id="scatter-container" style="width:100%;height:280px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">부처별 예산 증감률</div>
+        <div class="chart-container"><canvas id="chart-dept-change"></canvas></div>
+      </div>
+      <div class="card" id="dept-project-list-card" style="display:none">
+        <div class="card-title" id="dept-project-list-title">사업 목록</div>
+        <div id="dept-project-list"></div>
+      </div>
+    </div>
+
+    <!-- Field Tab -->
+    <div class="tab-content" id="tab-field" role="tabpanel" aria-labelledby="tab-btn-field">
+      <div class="card">
+        <div class="card-title">AI 분야별 예산 트리맵</div>
+        <div id="treemap-container" style="position:relative;height:500px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">분야-부처 교차 분석</div>
+        <div id="field-heatmap-container" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
+    <!-- Duplicate Tab -->
+    <div class="tab-content" id="tab-duplicate" role="tabpanel" aria-labelledby="tab-btn-duplicate">
+      <div class="dup-sub-tabs">
+        <button class="dup-sub-tab active" data-subtab="overview" onclick="switchDupSubTab('overview')">유사/중복
+          개요</button>
+        <button class="dup-sub-tab" data-subtab="keyword-search" onclick="switchDupSubTab('keyword-search')">키워드 유사성
+          검색</button>
+        <button class="dup-sub-tab" data-subtab="sim-explorer" onclick="switchDupSubTab('sim-explorer')">유사 사업
+          탐색기</button>
+        <button class="dup-sub-tab" data-subtab="auto-scan" onclick="switchDupSubTab('auto-scan')">자동 스캔</button>
+        <button class="dup-sub-tab" data-subtab="network" onclick="switchDupSubTab('network')">네트워크</button>
+        <button class="dup-sub-tab" data-subtab="similarity-v10"
+          onclick="switchDupSubTab('similarity-v10')">유사/중복(인력양성)</button>
+        <button class="dup-sub-tab" data-subtab="collaboration"
+          onclick="switchDupSubTab('collaboration')">협업가능성</button>
+        <button class="dup-sub-tab" data-subtab="hybrid" onclick="switchDupSubTab('hybrid')">하이브리드(이전)</button>
+        <button class="dup-sub-tab" data-subtab="help" onclick="switchDupSubTab('help')"
+          style="margin-left:auto;background:var(--bg-main);border:1px solid var(--border)">도움말</button>
+      </div>
+
+      <!-- Sub-tab 1: 유사/중복 개요 (기본) -->
+      <div class="dup-sub-content active" id="dup-sub-overview">
+        <div class="kpi-grid dup-kpi-compact" id="dup-kpi-grid"></div>
+        <!-- BI Analysis Widgets -->
+        <div class="grid-3" id="dup-bi-widgets" style="margin-bottom:20px;overflow:hidden">
+          <div class="card" id="dup-heatmap-card">
+            <div class="card-title">부처간 중복 예산 히트맵</div>
+            <div id="dup-heatmap-container" style="height:420px;overflow:auto"></div>
+          </div>
+          <div class="card" id="dup-scorecard-card">
+            <div class="card-title">통합 우선순위 스코어카드</div>
+            <div id="dup-scorecard-container" style="height:340px;overflow:auto"></div>
+          </div>
+          <div class="card" id="dup-bubble-card">
+            <div class="card-title">중복 도메인 버블차트</div>
+            <div style="position:relative;height:320px"><canvas id="chart-dup-bubble"></canvas></div>
+          </div>
+          <div class="card" id="dup-savings-card">
+            <div class="card-title">예산 절감 시뮬레이터</div>
+            <div id="dup-savings-container" style="height:360px;overflow:auto"></div>
+          </div>
+          <div class="card" id="dup-portfolio-card">
+            <div class="card-title">부처별 중복 포트폴리오</div>
+            <div id="dup-portfolio-container" style="height:340px;overflow:hidden">
+              <select id="dup-portfolio-dept"
+                style="width:100%;padding:6px;margin-bottom:8px;background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:4px">
+                <option value="">부처 선택</option>
+              </select>
+              <div style="position:relative;height:280px"><canvas id="chart-dup-radar"></canvas></div>
+            </div>
+          </div>
+          <div class="card" id="dup-taxonomy-card">
+            <div class="card-title">중복 유형 분류 대시보드</div>
+            <div id="dup-taxonomy-container" style="height:360px;overflow:auto">
+              <div style="position:relative;height:190px"><canvas id="chart-dup-taxonomy"></canvas></div>
+              <div id="dup-taxonomy-detail" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Legal Basis Duplication Widget -->
+        <div class="card" id="legal-basis-dup-card" style="margin-bottom:20px">
+          <div class="card-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span>법적 근거 기반 중복 탐지</span>
+            <span style="font-size:11px;color:var(--text-muted);font-weight:400">동일 법적 근거를 공유하는 사업 그룹 (클릭하여 사업 목록
+              확인)</span>
+          </div>
+          <div id="legal-basis-dup-container" style="overflow:auto;max-height:500px"></div>
+        </div>
+        <!-- Duplicate Groups Sort -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:12px;color:var(--text-secondary)">중복 그룹 정렬:</span>
+          <select id="dup-group-sort"
+            style="padding:5px 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-primary);font-family:inherit;cursor:pointer"
+            onchange="sortAndRerenderDupGroups()">
+            <option value="budget-desc">예산순</option>
+            <option value="count-desc" selected>사업수순</option>
+            <option value="dept-desc">부처수순</option>
+          </select>
+        </div>
+        <div id="dup-groups-container"></div>
+      </div>
+
+      <!-- Sub-tab 2: 키워드 유사성 검색 -->
+      <div class="dup-sub-content" id="dup-sub-keyword-search" style="display:none">
+        <div class="filter-bar">
+          <input type="text" class="search-input" id="dup-search"
+            placeholder="키워드 유사성 검색 (공백:AND  |:OR  -:제외  &quot;구문&quot;)"
+            onkeydown="if(event.key==='Enter')filterDupGroups()">
+          <label
+            style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;cursor:pointer;user-select:none"><input
+              type="checkbox" id="dup-sub-project-level" style="accent-color:var(--accent);cursor:pointer"
+              onchange="if(document.getElementById('dup-search').value.trim())filterDupGroups()"> 내역사업</label>
+          <select id="dup-sim-algorithm"
+            style="padding:6px 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-family:inherit;cursor:pointer"
+            onchange="if(document.getElementById('dup-search').value.trim())filterDupGroups()">
+            <option value="hybrid" selected>Jaccard+Cosine (기본)</option>
+            <option value="jaccard">Jaccard</option>
+            <option value="cosine">Cosine</option>
+            <option value="dice">Dice (Sørensen)</option>
+            <option value="overlap">Overlap Coefficient</option>
+            <option value="tfidf">TF-IDF 코사인 (의미적)</option>
+          </select>
+          <button class="btn-export"
+            style="background:var(--accent);color:#fff;font-weight:600;padding:8px 20px;border-radius:6px"
+            onclick="filterDupGroups()">검색</button>
+        </div>
+        <div id="dup-search-history" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">
+        </div>
+        <div id="dup-search-similarity" style="display:none"></div>
+      </div>
+
+      <!-- Sub-tab 3: 유사 사업 탐색기 -->
+      <div class="dup-sub-content" id="dup-sub-sim-explorer" style="display:none">
+        <div class="card" id="dup-similarity-card">
+          <div class="card-title" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            유사 사업 탐색기
+            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px">
+              <span style="font-size:11px;font-weight:400;color:var(--text-muted);white-space:nowrap">유사도 기준</span>
+              <input type="range" id="sim-threshold" min="30" max="100" value="60" step="5"
+                style="flex:1;accent-color:var(--accent)" oninput="updateSimExplorer()">
+              <span id="sim-threshold-val"
+                style="font-size:13px;font-weight:700;color:var(--accent);min-width:36px">60%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:400">
+              <select id="sim-sort"
+                style="padding:4px 8px;background:var(--bg-main);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:11px"
+                onchange="updateSimExplorer()">
+                <option value="similarity">유사도순</option>
+                <option value="budget">예산순</option>
+                <option value="dept">부처순</option>
+              </select>
+              <span id="sim-pair-count" style="color:var(--text-muted)"></span>
+              <label
+                style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-secondary);white-space:nowrap;cursor:pointer;user-select:none;margin-left:8px">
+                <input type="checkbox" id="sim-explorer-tfidf" style="accent-color:#8b5cf6;cursor:pointer"
+                  onchange="onSimExplorerTfidfToggle()"> 의미적 유사도 (TF-IDF)
+              </label>
+            </div>
+          </div>
+          <div id="sim-explorer-tfidf-progress" style="display:none;margin:8px 0 12px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+              <span style="font-size:12px;font-weight:600;color:#8b5cf6">TF-IDF 벡터 구축 중...</span>
+              <span id="sim-explorer-tfidf-pct" style="font-size:12px;color:#8b5cf6;font-weight:700">0%</span>
+            </div>
+            <div style="height:6px;background:var(--bg-main);border-radius:3px;overflow:hidden">
+              <div id="sim-explorer-tfidf-bar"
+                style="height:100%;background:#8b5cf6;border-radius:3px;transition:width 0.2s;width:0%"></div>
+            </div>
+          </div>
+          <div id="sim-explorer-hidden-dup" style="display:none;margin-bottom:12px"></div>
+          <div id="sim-bar-container"
+            style="height:12px;background:var(--bg-main);border-radius:6px;margin:8px 0 12px;overflow:hidden;display:flex">
+            <div id="sim-bar-high" style="background:#f87171;transition:width 0.3s" title="높음(≥60%)"></div>
+            <div id="sim-bar-mid" style="background:#fbbf24;transition:width 0.3s" title="중간(≥40%)"></div>
+            <div id="sim-bar-low" style="background:#34d399;transition:width 0.3s" title="낮음(≥30%)"></div>
+          </div>
+          <div id="sim-explorer-list"></div>
+        </div>
+      </div>
+
+      <!-- Sub-tab 4: 자동 스캔 -->
+      <div class="dup-sub-content" id="dup-sub-auto-scan" style="display:none">
+        <div id="auto-scan-progress" style="display:none;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:600">전체 사업 유사도 스캔 중...</span>
+            <span id="auto-scan-pct" style="font-size:12px;color:var(--accent);font-weight:700">0%</span>
+          </div>
+          <div style="height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden">
+            <div id="auto-scan-bar"
+              style="height:100%;background:var(--accent);border-radius:4px;transition:width 0.2s;width:0%"></div>
+          </div>
+        </div>
+        <div class="kpi-grid dup-kpi-compact" id="auto-scan-kpi" style="margin-bottom:16px"></div>
+        <div class="filter-bar" id="auto-scan-filters" style="display:none;margin-bottom:16px">
+          <select id="auto-scan-dept"
+            style="padding:6px 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-family:inherit">
+            <option value="">전체 부처</option>
+          </select>
+          <select id="auto-scan-grade"
+            style="padding:6px 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-family:inherit">
+            <option value="">전체 등급</option>
+            <option value="1">1등급: 완전중복 (90%+)</option>
+            <option value="2">2등급: 고유사 (75-90%)</option>
+            <option value="3">3등급: 부분중복 (50-75%)</option>
+            <option value="4">4등급: 약유사 (30-50%)</option>
+            <option value="5">5등급: 비유사 (30%-)</option>
+          </select>
+          <label
+            style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;cursor:pointer">
+            <input type="checkbox" id="auto-scan-cross-only" style="accent-color:var(--accent);cursor:pointer"> 교차부처만
+          </label>
+          <button class="btn-export"
+            style="background:var(--accent);color:#fff;font-weight:600;padding:6px 16px;border-radius:6px;font-size:12px"
+            onclick="filterAutoScanResults()">필터 적용</button>
+        </div>
+        <div id="auto-scan-results"></div>
+        <div id="auto-scan-heatmap-section" style="display:none;margin-top:24px">
+          <div class="card">
+            <div class="card-title">부처간 교차 중복 매트릭스</div>
+            <div id="auto-scan-heatmap" style="overflow:auto;max-height:600px"></div>
+            <div id="auto-scan-heatmap-detail" style="margin-top:12px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-tab 5: 네트워크 -->
+      <div class="dup-sub-content" id="dup-sub-network" style="display:none">
+        <div class="card">
+          <div class="card-title" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            사업 네트워크 시각화
+            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px">
+              <span style="font-size:11px;font-weight:400;color:var(--text-muted);white-space:nowrap">유사도 임계값</span>
+              <input type="range" id="network-threshold" min="10" max="90" value="30" step="5"
+                style="flex:1;accent-color:var(--accent)"
+                oninput="document.getElementById('network-threshold-val').textContent=this.value+'%'">
+              <span id="network-threshold-val"
+                style="font-size:13px;font-weight:700;color:var(--accent);min-width:36px">30%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:400">
+              <span style="color:var(--text-muted);white-space:nowrap">노드 수</span>
+              <input type="number" id="network-node-limit" min="20" max="200" value="100" step="10"
+                style="width:60px;padding:4px 6px;background:var(--bg-main);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:11px;font-family:inherit">
+              <select id="network-layout"
+                style="padding:4px 8px;background:var(--bg-main);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="force">Force 레이아웃</option>
+                <option value="radial">Radial 레이아웃</option>
+              </select>
+              <button class="btn-export"
+                style="background:var(--accent);color:#fff;font-weight:600;padding:5px 14px;border-radius:6px;font-size:12px"
+                onclick="recomputeNetwork()">다시 계산</button>
+            </div>
+          </div>
+          <div id="network-stats"
+            style="display:flex;gap:16px;font-size:12px;color:var(--text-secondary);margin-bottom:8px"></div>
+          <svg id="network-svg"
+            style="width:100%;height:600px;background:var(--bg-primary);border-radius:8px;border:1px solid var(--border)"></svg>
+          <div id="network-legend"
+            style="display:flex;flex-wrap:wrap;gap:2px;margin-top:10px;padding:8px;background:var(--bg-main);border-radius:6px">
+          </div>
+        </div>
+        <div id="network-cluster-info" style="margin-top:16px"></div>
+      </div>
+
+      <!-- Similarity v10 Tab -->
+      <div class="dup-sub-content" id="dup-sub-similarity-v10" style="display:none">
+        <div id="sim-v10-status" style="text-align:center;padding:40px;color:var(--text-muted)">데이터 로드 중...</div>
+        <div id="sim-v10-kpi" style="display:none"></div>
+        <div id="sim-v10-clusters-header" style="display:none">
+          <h3>유사 클러스터 <span id="sim-v10-clusters-count"></span>개</h3>
+        </div>
+        <div id="sim-v10-clusters-body"></div>
+        <div style="display:flex;gap:12px;margin:12px 0;align-items:center">
+          <input type="text" id="sim-v10-filter" placeholder="사업명/부처 검색..."
+            style="flex:1;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px"
+            oninput="filterSimV10Pairs()">
+          <select id="sim-v10-name-mode"
+            style="padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px"
+            onchange="filterSimV10Pairs()">
+            <option value="sub_project">내역사업명 우선</option>
+            <option value="project">사업명 우선</option>
+          </select>
+          <select id="sim-v10-score-filter"
+            style="padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px"
+            onchange="filterSimV10Pairs()">
+            <option value="0">전체 점수</option>
+            <option value="7">7점 이상</option>
+            <option value="6">6점 이상</option>
+            <option value="5">5점 이상</option>
+          </select>
+          <span id="sim-v10-pair-count" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+        <div id="sim-v10-pairs" style="max-height:600px;overflow:auto"></div>
+        <div id="sim-v10-detail-modal"
+          style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;overflow:auto">
+          <div
+            style="max-width:800px;margin:40px auto;background:var(--bg-card);border-radius:12px;padding:24px;position:relative">
+            <button onclick="document.getElementById('sim-v10-detail-modal').style.display='none'"
+              style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer">&times;</button>
+            <div id="sim-v10-detail-content"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collaboration Tab -->
+      <div class="dup-sub-content" id="dup-sub-collaboration" style="display:none">
+        <div id="collab-status" style="text-align:center;padding:40px;color:var(--text-muted)">데이터 로드 중...</div>
+        <div id="collab-kpi" style="display:none"></div>
+        <div id="collab-chains-header" style="display:none">
+          <h3>협업 체인 <span id="collab-chains-count"></span>개</h3>
+        </div>
+        <div id="collab-chains-body"></div>
+        <div id="collab-hubs-header" style="display:none">
+          <h3>협업 허브 <span id="collab-hubs-count"></span>개</h3>
+        </div>
+        <div id="collab-hubs-body"></div>
+        <div style="display:flex;gap:12px;margin:12px 0;align-items:center">
+          <input type="text" id="collab-filter" placeholder="사업명/부처 검색..."
+            style="flex:1;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px"
+            oninput="filterCollabPairs()">
+          <select id="collab-name-mode"
+            style="padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px"
+            onchange="filterCollabPairs()">
+            <option value="sub_project">내역사업명 우선</option>
+            <option value="project">사업명 우선</option>
+          </select>
+          <select id="collab-type-filter"
+            style="padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px"
+            onchange="filterCollabPairs()">
+            <option value="">전체 유형</option>
+            <option value="인력 양성">인력 양성→산업체</option>
+            <option value="기술/인프라">기술/인프라 공유</option>
+            <option value="R&D→실증">R&D Value Chain</option>
+            <option value="데이터">데이터 연계</option>
+            <option value="정책">정책 연계</option>
+            <option value="기반기술">기반기술→도메인</option>
+          </select>
+          <select id="collab-score-filter"
+            style="padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px"
+            onchange="filterCollabPairs()">
+            <option value="0">전체 점수</option>
+            <option value="9">9점 이상</option>
+            <option value="7">7점 이상</option>
+            <option value="5">5점 이상</option>
+          </select>
+          <span id="collab-pair-count" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+        <div id="collab-pairs" style="max-height:600px;overflow:auto"></div>
+        <div id="collab-detail-modal"
+          style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;overflow:auto">
+          <div
+            style="max-width:800px;margin:40px auto;background:var(--bg-card);border-radius:12px;padding:24px;position:relative">
+            <button onclick="document.getElementById('collab-detail-modal').style.display='none'"
+              style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer">&times;</button>
+            <div id="collab-detail-content"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hybrid Analysis Tab -->
+      <div class="dup-sub-content" id="dup-sub-hybrid" style="display:none">
+        <div class="card">
+          <div class="card-title" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            하이브리드 유사성 분석
+            <select id="hybrid-profile-select"
+              style="padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:13px"
+              onchange="renderHybridProfile()">
+              <option value="">프로필 선택...</option>
+            </select>
+            <span id="hybrid-status" style="font-size:12px;color:var(--text-muted)"></span>
+          </div>
+
+          <!-- Summary KPIs -->
+          <div id="hybrid-kpi"
+            style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0"></div>
+
+          <!-- Profile description -->
+          <div id="hybrid-desc"
+            style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;padding:12px;background:var(--bg-main);border-radius:8px;display:none">
+          </div>
+
+          <!-- Summary charts row -->
+          <div id="hybrid-charts-container"
+            style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div style="background:var(--bg-main);border-radius:8px;padding:16px;max-height:260px;overflow:hidden">
+              <div style="font-size:13px;font-weight:600;margin-bottom:8px">부처쌍별 유사 사업 수</div>
+              <div id="hybrid-dept-chart-wrap" style="height:200px;position:relative"></div>
+            </div>
+            <div style="background:var(--bg-main);border-radius:8px;padding:16px;max-height:260px;overflow:hidden">
+              <div style="font-size:13px;font-weight:600;margin-bottom:8px">분야별 유사 사업 수</div>
+              <div id="hybrid-domain-chart-wrap" style="height:200px;position:relative"></div>
+            </div>
+          </div>
+
+          <!-- Clusters (collapsible) -->
+          <div style="margin-bottom:16px">
+            <div id="hybrid-clusters-header"
+              style="display:none;font-size:14px;font-weight:600;margin-bottom:8px;cursor:pointer;user-select:none"
+              onclick="const b=document.getElementById('hybrid-clusters-body');const a=this.querySelector('span');if(b.style.display==='none'){b.style.display='';a.textContent='▼'}else{b.style.display='none';a.textContent='▶'}">
+              <span>▼</span> 중복 클러스터 (<span id="hybrid-clusters-count">0</span>개)
+            </div>
+            <div id="hybrid-clusters-body" style="max-height:300px;overflow-y:auto"></div>
+          </div>
+
+          <!-- Pair filter & table -->
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+            <input type="text" id="hybrid-filter" placeholder="쌍 검색 (부처, 사업명...)"
+              style="flex:1;min-width:200px;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-main);color:var(--text-primary);font-size:13px"
+              oninput="filterHybridPairs()">
+            <select id="hybrid-name-mode"
+              style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:12px"
+              onchange="filterHybridPairs()">
+              <option value="sub_project">내역사업명 우선</option>
+              <option value="project">사업명 우선</option>
+            </select>
+            <select id="hybrid-score-filter"
+              style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:12px"
+              onchange="filterHybridPairs()">
+              <option value="0">전체 점수</option>
+              <option value="8">8점+</option>
+              <option value="7">7점+</option>
+              <option value="6">6점+</option>
+              <option value="5">5점+</option>
+            </select>
+            <span id="hybrid-pair-count" style="font-size:12px;color:var(--text-muted)"></span>
+          </div>
+          <div id="hybrid-pairs" style="max-height:500px;overflow-y:auto"></div>
+        </div>
+
+        <!-- Detail modal -->
+        <div id="hybrid-detail-modal"
+          style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;overflow-y:auto"
+          onclick="if(event.target===this)this.style.display='none'">
+          <div
+            style="max-width:800px;margin:40px auto;background:var(--bg-card);border-radius:12px;padding:24px;position:relative">
+            <button onclick="document.getElementById('hybrid-detail-modal').style.display='none'"
+              style="position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer">&times;</button>
+            <div id="hybrid-detail-content"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help Tab -->
+      <div class="dup-sub-content" id="dup-sub-help" style="display:none">
+        <div class="card" style="max-width:1200px">
+          <div class="card-title" style="font-size:18px;margin-bottom:20px">유사성 분석 도움말</div>
+
+          <!-- 개요 -->
+          <div style="margin-bottom:32px">
+            <h3
+              style="font-size:16px;color:var(--accent);margin-bottom:12px;border-bottom:2px solid var(--accent);padding-bottom:8px">
+              분석 개요</h3>
+            <p style="font-size:14px;line-height:1.8;color:var(--text-secondary);margin-bottom:16px">
+              이 페이지는 2026년 AI 재정사업 533개(41개 부처, 약 27.1조원)의 <strong>유사성·중복성</strong>을 다양한 알고리즘으로 분석합니다.
+              각 탭은 서로 다른 목적과 알고리즘을 사용하며, 분석 관점에 따라 적합한 탭을 선택하여 활용할 수 있습니다.
+            </p>
+            <div
+              style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;background:var(--bg-main);padding:16px;border-radius:8px">
+              <div style="text-align:center;padding:12px">
+                <div style="font-size:24px;font-weight:700;color:var(--accent)">8개</div>
+                <div style="font-size:12px;color:var(--text-muted)">분석 탭</div>
+              </div>
+              <div style="text-align:center;padding:12px">
+                <div style="font-size:24px;font-weight:700;color:var(--green)">3개</div>
+                <div style="font-size:12px;color:var(--text-muted)">서버 분석 (Python)</div>
+              </div>
+              <div style="text-align:center;padding:12px">
+                <div style="font-size:24px;font-weight:700;color:var(--yellow)">5개</div>
+                <div style="font-size:12px;color:var(--text-muted)">브라우저 분석 (JS)</div>
+              </div>
+              <div style="text-align:center;padding:12px">
+                <div style="font-size:24px;font-weight:700;color:var(--red)">6+</div>
+                <div style="font-size:12px;color:var(--text-muted)">유사도 알고리즘</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 탭별 상세 설명 -->
+          <div style="margin-bottom:32px">
+            <h3
+              style="font-size:16px;color:var(--accent);margin-bottom:16px;border-bottom:2px solid var(--accent);padding-bottom:8px">
+              탭별 분석 방법</h3>
+
+            <!-- 1. 유사/중복 개요 -->
+            <div style="background:var(--bg-main);border-radius:12px;padding:20px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <span
+                  style="background:var(--accent);color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">1</span>
+                <h4 style="font-size:15px;font-weight:600;margin:0">유사/중복 개요</h4>
+                <span
+                  style="font-size:11px;color:var(--text-muted);background:var(--bg-card);padding:2px 8px;border-radius:4px">브라우저
+                  분석</span>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">목적</td>
+                  <td>전체 중복 현황 대시보드, 시각화 중심 개요 파악</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">알고리즘</td>
+                  <td><strong>키워드 기반 그룹핑</strong> - 사전 정의된 중복 키워드(AI, 데이터, 로봇 등) 매칭</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">특징</td>
+                  <td>부처간 히트맵, 버블차트, 레이더, 법적 근거 중복 탐지, 예산 절감 시뮬레이터</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">장점</td>
+                  <td>직관적 시각화, 빠른 전체 현황 파악</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">한계</td>
+                  <td>의미적 유사성 미탐지, 사전 정의 키워드 의존</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- 2. 키워드 유사성 검색 -->
+            <div style="background:var(--bg-main);border-radius:12px;padding:20px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <span
+                  style="background:var(--accent);color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">2</span>
+                <h4 style="font-size:15px;font-weight:600;margin:0">키워드 유사성 검색</h4>
+                <span
+                  style="font-size:11px;color:var(--text-muted);background:var(--bg-card);padding:2px 8px;border-radius:4px">브라우저
+                  분석</span>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">목적</td>
+                  <td>사용자 지정 키워드로 유사 사업 검색</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">알고리즘</td>
+                  <td><strong>6가지 선택 가능:</strong></td>
+                </tr>
+              </table>
+              <div
+                style="background:var(--bg-card);border-radius:8px;padding:12px;margin:8px 0 8px 120px;font-size:12px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                  <div><code style="background:var(--bg-main);padding:2px 6px;border-radius:4px">Jaccard</code> = |A∩B|
+                    / |A∪B| (집합 기반)</div>
+                  <div><code style="background:var(--bg-main);padding:2px 6px;border-radius:4px">Cosine</code> = (A·B) /
+                    (‖A‖×‖B‖) (벡터 각도)</div>
+                  <div><code style="background:var(--bg-main);padding:2px 6px;border-radius:4px">Dice</code> = 2×|A∩B| /
+                    (|A|+|B|) (작은 집합 유리)</div>
+                  <div><code style="background:var(--bg-main);padding:2px 6px;border-radius:4px">Overlap</code> = |A∩B|
+                    / min(|A|,|B|) (부분집합 탐지)</div>
+                  <div><code style="background:var(--bg-main);padding:2px 6px;border-radius:4px">TF-IDF</code> =
+                    Σ(tf×idf) cosine (의미적 유사성)</div>
+                  <div><code style="background:var(--bg-main);padding:2px 6px;border-radius:4px">Hybrid</code> =
+                    0.5×Jaccard + 0.5×Cosine (기본값)</div>
+                </div>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">특징</td>
+                  <td>AND/OR/NOT/구문 검색, 내역사업 레벨 검색 지원</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">장점</td>
+                  <td>다양한 알고리즘 비교 가능, 사용자 주도 탐색</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">한계</td>
+                  <td>키워드를 알아야 함, 전체 스캔 아님</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- 3. 유사 사업 탐색기 -->
+            <div style="background:var(--bg-main);border-radius:12px;padding:20px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <span
+                  style="background:var(--accent);color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">3</span>
+                <h4 style="font-size:15px;font-weight:600;margin:0">유사 사업 탐색기</h4>
+                <span
+                  style="font-size:11px;color:var(--text-muted);background:var(--bg-card);padding:2px 8px;border-radius:4px">브라우저
+                  분석</span>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">목적</td>
+                  <td>실시간 인터랙티브 유사 사업 쌍 탐색</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">알고리즘</td>
+                  <td><strong>Hybrid</strong> = 0.5×Jaccard + 0.5×Cosine (선택적 TF-IDF)</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">특징</td>
+                  <td>유사도 임계값 슬라이더(30~100%), TF-IDF 토글, 실시간 필터링</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">장점</td>
+                  <td>인터랙티브 탐색, 민감도 즉시 조절</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">한계</td>
+                  <td>브라우저 내 계산으로 대용량 시 느림</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- 4. 자동 스캔 -->
+            <div style="background:var(--bg-main);border-radius:12px;padding:20px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <span
+                  style="background:var(--accent);color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">4</span>
+                <h4 style="font-size:15px;font-weight:600;margin:0">자동 스캔</h4>
+                <span
+                  style="font-size:11px;color:var(--text-muted);background:var(--bg-card);padding:2px 8px;border-radius:4px">브라우저
+                  분석</span>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">목적</td>
+                  <td>전체 사업 전수 스캔 + 5등급 자동 분류</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">알고리즘</td>
+                  <td><strong>Hybrid + 등급 분류:</strong></td>
+                </tr>
+              </table>
+              <div
+                style="background:var(--bg-card);border-radius:8px;padding:12px;margin:8px 0 8px 120px;font-size:12px">
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                  <span style="background:#f87171;color:#fff;padding:4px 8px;border-radius:4px">1등급: 90%+ (완전중복)</span>
+                  <span style="background:#fb923c;color:#fff;padding:4px 8px;border-radius:4px">2등급: 75-90% (고유사)</span>
+                  <span style="background:#fbbf24;color:#000;padding:4px 8px;border-radius:4px">3등급: 50-75%
+                    (부분중복)</span>
+                  <span style="background:#a3e635;color:#000;padding:4px 8px;border-radius:4px">4등급: 30-50% (약유사)</span>
+                  <span style="background:#34d399;color:#000;padding:4px 8px;border-radius:4px">5등급: 30%- (비유사)</span>
+                </div>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">특징</td>
+                  <td>부처/등급 필터, 교차부처 매트릭스 시각화</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">장점</td>
+                  <td>전수 조사, 등급별 우선순위 명확</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">한계</td>
+                  <td>스캔 시간 소요(N² 복잡도), 브라우저 메모리 부담</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- 5. 네트워크 -->
+            <div style="background:var(--bg-main);border-radius:12px;padding:20px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <span
+                  style="background:var(--accent);color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">5</span>
+                <h4 style="font-size:15px;font-weight:600;margin:0">네트워크</h4>
+                <span
+                  style="font-size:11px;color:var(--text-muted);background:var(--bg-card);padding:2px 8px;border-radius:4px">브라우저
+                  분석</span>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">목적</td>
+                  <td>사업간 관계 구조 시각화, 클러스터 탐지</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">알고리즘</td>
+                  <td><strong>그래프 기반</strong> - 유사도 임계값 이상 쌍을 엣지로 연결, Force/Radial 레이아웃</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">특징</td>
+                  <td>SVG 네트워크, 노드 수/임계값 조절, 부처별 색상</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">장점</td>
+                  <td>관계 구조 직관적 파악, 허브 사업 식별</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">한계</td>
+                  <td>대규모 네트워크 시 가독성 저하</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- 6. 유사/중복(인력양성) -->
+            <div
+              style="background:linear-gradient(135deg,var(--bg-main),rgba(99,102,241,0.1));border:1px solid var(--accent);border-radius:12px;padding:20px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <span
+                  style="background:var(--green);color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">6</span>
+                <h4 style="font-size:15px;font-weight:600;margin:0">유사/중복(인력양성)</h4>
+                <span style="font-size:11px;color:#fff;background:var(--green);padding:2px 8px;border-radius:4px">서버 분석
+                  (Python)</span>
+                <span style="font-size:11px;color:var(--accent);font-weight:600">★ 정밀 분석</span>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">목적</td>
+                  <td><strong>인력양성(T04/T05) 사업 전용</strong> 중복성 정밀 분석</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">분석 단위</td>
+                  <td>내역사업(sub_project) 레벨</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">알고리즘</td>
+                  <td><strong>4차원 가중 합산 + 게이트 필터:</strong></td>
+                </tr>
+              </table>
+              <div
+                style="background:var(--bg-card);border-radius:8px;padding:16px;margin:8px 0 8px 120px;font-size:13px">
+                <div style="font-family:monospace;color:var(--accent);margin-bottom:8px">
+                  점수 = (F×0.35 + C×0.25 + D×0.10 + E×0.20) × B × 10 + text_bonus
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+                  <div><strong>F (35%)</strong>: 타겟분야 유사도 (Overlap Coefficient)</div>
+                  <div><strong>C (25%)</strong>: 수혜대상 유사도 (Jaccard)</div>
+                  <div><strong>D (10%)</strong>: 수행기관 유사도 (Jaccard)</div>
+                  <div><strong>E (20%)</strong>: 텍스트 유사도 (Dual TF-IDF)</div>
+                  <div><strong>B</strong>: 타입 게이트 (T04-T05 교차=0.8, 동일=1.0)</div>
+                  <div><strong>text_bonus</strong>: E≥0.8이면 +2.0점</div>
+                </div>
+              </div>
+              <div
+                style="background:var(--bg-card);border-radius:8px;padding:12px;margin:8px 0 8px 120px;font-size:12px">
+                <div style="font-weight:600;margin-bottom:6px">Dual TF-IDF 구성:</div>
+                <code>E = 0.4 × E_domain(프로젝트명+목적+설명) + 0.6 × E_structure(교육형태+대상+방식+목표)</code>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">게이트 조건</td>
+                  <td>① T04/T05/T98만 ② 타겟분야 중복 필수(F>0) ③ 최소 5.0점</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">특징</td>
+                  <td>군집화(clique/chain), 허브 프로젝트 식별, 정책 권고 자동 생성</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">장점</td>
+                  <td>인력양성 특화 가중치, 교육구조 키워드 분석, 임베딩 지원</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">한계</td>
+                  <td>인력양성 외 사업 분석 불가</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- 7. 협업가능성 -->
+            <div
+              style="background:linear-gradient(135deg,var(--bg-main),rgba(34,197,94,0.1));border:1px solid var(--green);border-radius:12px;padding:20px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <span
+                  style="background:var(--green);color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">7</span>
+                <h4 style="font-size:15px;font-weight:600;margin:0">협업가능성</h4>
+                <span style="font-size:11px;color:#fff;background:var(--green);padding:2px 8px;border-radius:4px">서버 분석
+                  (Python)</span>
+                <span style="font-size:11px;color:var(--green);font-weight:600">★ 협업 발굴</span>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">목적</td>
+                  <td><strong>중복 해소가 아닌 협업 기회 발굴</strong> - 공급↔수요 연계 분석</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">분석 단위</td>
+                  <td>내역사업(sub_project) 레벨</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">알고리즘</td>
+                  <td><strong>Value Chain 패턴 매칭 (6가지 유형):</strong></td>
+                </tr>
+              </table>
+              <div
+                style="background:var(--bg-card);border-radius:8px;padding:12px;margin:8px 0 8px 120px;font-size:12px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <div>① <strong>인력양성→산업체</strong>: T04/T05 → T02/T03/T06</div>
+                  <div>② <strong>기술/인프라 공유</strong>: T06/T07 → T02</div>
+                  <div>③ <strong>R&D→실증→사업화</strong>: T01 → T02</div>
+                  <div>④ <strong>데이터 구축→활용</strong>: T07 → T01/T02</div>
+                  <div>⑤ <strong>정책·제도→사업화</strong>: T08 → T02/T03</div>
+                  <div>⑥ <strong>기반기술→도메인</strong>: D98/D99 → D01-D18</div>
+                </div>
+              </div>
+              <div
+                style="background:var(--bg-card);border-radius:8px;padding:16px;margin:8px 0 8px 120px;font-size:13px">
+                <div style="font-family:monospace;color:var(--green);margin-bottom:8px">
+                  점수 = linkage_clarity(0-3) + domain_match(0-2) + synergy(0-3) + irreplaceability(0-2)
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+                  <div><strong>linkage_clarity</strong>: 연계 패턴 명확도</div>
+                  <div><strong>domain_match</strong>: 도메인 일치도 (동일=2, 교차=1)</div>
+                  <div><strong>synergy</strong>: 예산 규모 + 타입 시너지</div>
+                  <div><strong>irreplaceability</strong>: 분야 고유성 + 기관 특이성</div>
+                </div>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">특징</td>
+                  <td>Value Chain 체인, 허브 네트워크, 정책 권고 자동 생성</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">장점</td>
+                  <td>공급-수요 역할 명확, 협업 시너지 정량화</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">한계</td>
+                  <td>선형 모델로 다각형 협업 미탐지</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- 8. 하이브리드 -->
+            <div
+              style="background:linear-gradient(135deg,var(--bg-main),rgba(139,92,246,0.1));border:1px solid #8b5cf6;border-radius:12px;padding:20px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <span
+                  style="background:#8b5cf6;color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">8</span>
+                <h4 style="font-size:15px;font-weight:600;margin:0">하이브리드(이전)</h4>
+                <span style="font-size:11px;color:#fff;background:var(--green);padding:2px 8px;border-radius:4px">서버 분석
+                  (Python)</span>
+                <span style="font-size:11px;color:#8b5cf6;font-weight:600">★ 종합 분석</span>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">목적</td>
+                  <td><strong>가장 종합적인 다차원 분석</strong> - 12개 도메인 프로필별 맞춤 분석</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">분석 단위</td>
+                  <td>내역사업(sub_project) 레벨</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">알고리즘</td>
+                  <td><strong>7차원 가중 합산 × 프로필별 가중치:</strong></td>
+                </tr>
+              </table>
+              <div
+                style="background:var(--bg-card);border-radius:8px;padding:16px;margin:8px 0 8px 120px;font-size:13px">
+                <div style="font-family:monospace;color:#8b5cf6;margin-bottom:8px">
+                  점수 = Σ(차원별 유사도 × 프로필별 가중치) × type_gate × 10 + bonus
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px;margin-top:8px">
+                  <div style="background:var(--bg-main);padding:6px;border-radius:4px;text-align:center">
+                    <strong>field</strong><br>25%
+                  </div>
+                  <div style="background:var(--bg-main);padding:6px;border-radius:4px;text-align:center">
+                    <strong>beneficiary</strong><br>8%
+                  </div>
+                  <div style="background:var(--bg-main);padding:6px;border-radius:4px;text-align:center">
+                    <strong>agency</strong><br>7%
+                  </div>
+                  <div style="background:var(--bg-main);padding:6px;border-radius:4px;text-align:center">
+                    <strong>text</strong><br>30%
+                  </div>
+                  <div style="background:var(--bg-main);padding:6px;border-radius:4px;text-align:center">
+                    <strong>budget_scale</strong><br>10%
+                  </div>
+                  <div style="background:var(--bg-main);padding:6px;border-radius:4px;text-align:center">
+                    <strong>budget_trend</strong><br>10%
+                  </div>
+                  <div style="background:var(--bg-main);padding:6px;border-radius:4px;text-align:center">
+                    <strong>sub_project</strong><br>10%
+                  </div>
+                  <div style="background:#8b5cf6;color:#fff;padding:6px;border-radius:4px;text-align:center"><strong>총
+                      7차원</strong></div>
+                </div>
+              </div>
+              <div
+                style="background:var(--bg-card);border-radius:8px;padding:12px;margin:8px 0 8px 120px;font-size:12px">
+                <div style="font-weight:600;margin-bottom:6px">12개 분석 프로필:</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px">
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">rnd</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">training</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">defense</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">infra</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">manufacturing</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">data_platform</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">medical_bio</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">testbed</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">education</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">digital_transform</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">energy_env</span>
+                  <span style="background:var(--bg-main);padding:2px 8px;border-radius:4px">general</span>
+                </div>
+              </div>
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted);width:120px">특징</td>
+                  <td>예산 추세(3~5년), 세부사업 구조, 임베딩(LLM) 지원, 신규사업 보정</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">장점</td>
+                  <td>가장 포괄적, 프로필별 맞춤 가중치</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:var(--text-muted)">한계</td>
+                  <td>복잡도 높음, 계산량 많음</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- 알고리즘 비교표 -->
+          <div style="margin-bottom:32px">
+            <h3
+              style="font-size:16px;color:var(--accent);margin-bottom:16px;border-bottom:2px solid var(--accent);padding-bottom:8px">
+              알고리즘 비교 요약</h3>
+            <div style="overflow-x:auto">
+              <table style="width:100%;font-size:12px;border-collapse:collapse;min-width:800px">
+                <thead>
+                  <tr style="background:var(--bg-main)">
+                    <th style="padding:10px;text-align:left;border-bottom:2px solid var(--border)">탭</th>
+                    <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border)">실행 환경</th>
+                    <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border)">핵심 알고리즘</th>
+                    <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border)">분석 차원</th>
+                    <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border)">임계값</th>
+                    <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border)">군집화</th>
+                    <th style="padding:10px;text-align:left;border-bottom:2px solid var(--border)">최적 용도</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="padding:8px;border-bottom:1px solid var(--border)">유사/중복 개요</td>
+                    <td style="text-align:center">JS</td>
+                    <td style="text-align:center">키워드 매칭</td>
+                    <td style="text-align:center">1개</td>
+                    <td style="text-align:center">-</td>
+                    <td style="text-align:center">-</td>
+                    <td>전체 현황 파악</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px;border-bottom:1px solid var(--border)">키워드 검색</td>
+                    <td style="text-align:center">JS</td>
+                    <td style="text-align:center">6종 선택</td>
+                    <td style="text-align:center">1개</td>
+                    <td style="text-align:center">사용자 지정</td>
+                    <td style="text-align:center">-</td>
+                    <td>특정 키워드 검색</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px;border-bottom:1px solid var(--border)">유사 사업 탐색기</td>
+                    <td style="text-align:center">JS</td>
+                    <td style="text-align:center">Hybrid</td>
+                    <td style="text-align:center">1개</td>
+                    <td style="text-align:center">30-100%</td>
+                    <td style="text-align:center">-</td>
+                    <td>실시간 탐색</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px;border-bottom:1px solid var(--border)">자동 스캔</td>
+                    <td style="text-align:center">JS</td>
+                    <td style="text-align:center">Hybrid+등급</td>
+                    <td style="text-align:center">1개</td>
+                    <td style="text-align:center">5등급</td>
+                    <td style="text-align:center">-</td>
+                    <td>전수 조사</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px;border-bottom:1px solid var(--border)">네트워크</td>
+                    <td style="text-align:center">JS</td>
+                    <td style="text-align:center">그래프</td>
+                    <td style="text-align:center">1개</td>
+                    <td style="text-align:center">10-90%</td>
+                    <td style="text-align:center">O</td>
+                    <td>구조 시각화</td>
+                  </tr>
+                  <tr style="background:rgba(99,102,241,0.05)">
+                    <td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600">유사/중복(인력양성)</td>
+                    <td style="text-align:center;color:var(--green);font-weight:600">Python</td>
+                    <td style="text-align:center">Dual TF-IDF</td>
+                    <td style="text-align:center;font-weight:600">4개</td>
+                    <td style="text-align:center">5.0점</td>
+                    <td style="text-align:center;color:var(--green)">O</td>
+                    <td style="font-weight:600">인력양성 중복</td>
+                  </tr>
+                  <tr style="background:rgba(34,197,94,0.05)">
+                    <td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600">협업가능성</td>
+                    <td style="text-align:center;color:var(--green);font-weight:600">Python</td>
+                    <td style="text-align:center">Value Chain</td>
+                    <td style="text-align:center;font-weight:600">4개</td>
+                    <td style="text-align:center">5.0점</td>
+                    <td style="text-align:center;color:var(--green)">O</td>
+                    <td style="font-weight:600">협업 기회 발굴</td>
+                  </tr>
+                  <tr style="background:rgba(139,92,246,0.05)">
+                    <td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600">하이브리드</td>
+                    <td style="text-align:center;color:var(--green);font-weight:600">Python</td>
+                    <td style="text-align:center">7차원 가중합</td>
+                    <td style="text-align:center;font-weight:600">7개</td>
+                    <td style="text-align:center">4.5-5.5점</td>
+                    <td style="text-align:center;color:var(--green)">O</td>
+                    <td style="font-weight:600">종합 유사성 분석</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 용도별 권장 -->
+          <div style="margin-bottom:24px">
+            <h3
+              style="font-size:16px;color:var(--accent);margin-bottom:16px;border-bottom:2px solid var(--accent);padding-bottom:8px">
+              용도별 권장 탭</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+              <div style="background:var(--bg-main);border-radius:12px;padding:16px">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">전체 현황 파악</div>
+                <div style="font-size:13px;color:var(--text-secondary)">→ <strong>유사/중복 개요</strong>: 시각화 대시보드로 전체 중복 현황
+                  개요</div>
+              </div>
+              <div style="background:var(--bg-main);border-radius:12px;padding:16px">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">특정 키워드 검색</div>
+                <div style="font-size:13px;color:var(--text-secondary)">→ <strong>키워드 유사성 검색</strong>: 다양한 알고리즘으로 검색어 기반
+                  탐색</div>
+              </div>
+              <div style="background:var(--bg-main);border-radius:12px;padding:16px">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">실시간 탐색</div>
+                <div style="font-size:13px;color:var(--text-secondary)">→ <strong>유사 사업 탐색기</strong>: 임계값 조절하며 인터랙티브 탐색
+                </div>
+              </div>
+              <div style="background:var(--bg-main);border-radius:12px;padding:16px">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">전수 스캔 필요</div>
+                <div style="font-size:13px;color:var(--text-secondary)">→ <strong>자동 스캔</strong>: 전체 사업 N×N 비교 + 5등급 분류
+                </div>
+              </div>
+              <div
+                style="background:linear-gradient(135deg,var(--bg-main),rgba(99,102,241,0.1));border-radius:12px;padding:16px;border:1px solid var(--accent)">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">인력양성 중복 분석</div>
+                <div style="font-size:13px;color:var(--text-secondary)">→ <strong>유사/중복(인력양성)</strong>: 교육 특화 4차원 분석 +
+                  군집화</div>
+              </div>
+              <div
+                style="background:linear-gradient(135deg,var(--bg-main),rgba(34,197,94,0.1));border-radius:12px;padding:16px;border:1px solid var(--green)">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--green)">부처간 협업 기회</div>
+                <div style="font-size:13px;color:var(--text-secondary)">→ <strong>협업가능성</strong>: 공급-수요 연계 + Value Chain
+                  분석</div>
+              </div>
+              <div
+                style="background:linear-gradient(135deg,var(--bg-main),rgba(139,92,246,0.1));border-radius:12px;padding:16px;border:1px solid #8b5cf6">
+                <div style="font-weight:600;margin-bottom:8px;color:#8b5cf6">종합 정밀 분석</div>
+                <div style="font-size:13px;color:var(--text-secondary)">→ <strong>하이브리드</strong>: 7차원 + 12개 프로필 + 예산 추세
+                  분석</div>
+              </div>
+              <div style="background:var(--bg-main);border-radius:12px;padding:16px">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">구조 시각화</div>
+                <div style="font-size:13px;color:var(--text-secondary)">→ <strong>네트워크</strong>: 사업간 관계 구조 + 클러스터 시각화
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 임베딩 정보 -->
+          <div style="background:var(--bg-main);border-radius:12px;padding:20px">
+            <h4 style="font-size:14px;margin-bottom:12px;color:var(--text-primary)">임베딩(LLM) 활용</h4>
+            <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+              <p>서버 분석(Python) 탭들은 <strong>gpt-oss:20b</strong> 모델을 통한 임베딩 유사도를 선택적으로 활용합니다.</p>
+              <ul style="margin:8px 0 0 20px">
+                <li><strong>유사/중복(인력양성)</strong>: 0.5×임베딩 + 0.5×Dual TF-IDF</li>
+                <li><strong>하이브리드</strong>: 0.6×임베딩 + 0.4×TF-IDF</li>
+              </ul>
+              <p style="margin-top:8px">임베딩 캐시가 존재하면 <code>--llm</code> 플래그 없이도 자동 로드됩니다.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects Tab -->
+    <div class="tab-content" id="tab-projects" role="tabpanel" aria-labelledby="tab-btn-projects">
+      <div class="filter-bar">
+        <input type="text" class="search-input" id="project-search"
+          placeholder="검색 (공백:AND  |:OR  -:제외  &quot;구문&quot;)" aria-label="사업 검색">
+        <label
+          style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;cursor:pointer">
+          <input type="checkbox" id="search-name-only"> 사업명만
+        </label>
+        <select id="project-dept-filter" aria-label="부처 필터">
+          <option value="">전체 부처</option>
+        </select>
+        <select id="project-type-filter" aria-label="유형 필터">
+          <option value="">전체 유형</option>
+          <option value="rnd">R&D</option>
+          <option value="info">정보화</option>
+          <option value="general">일반</option>
+        </select>
+        <select id="project-field-filter" aria-label="AI 분야 필터">
+          <option value="">전체 분야</option>
+        </select>
+        <select id="project-tech-filter" aria-label="AI 기술 필터">
+          <option value="">전체 기술</option>
+        </select>
+        <select id="project-stage-filter" aria-label="R&D 단계 필터">
+          <option value="">전체 단계</option>
+        </select>
+        <label
+          style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;cursor:pointer">
+          <input type="checkbox" id="filter-zero-budget" style="accent-color:var(--red);cursor:pointer"> 0원 사업 제외
+        </label>
+        <label
+          style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;cursor:pointer">
+          <input type="checkbox" id="filter-budget-mismatch" style="accent-color:var(--yellow);cursor:pointer"> 예산불일치만
+        </label>
+        <select id="project-sort" aria-label="정렬 기준">
+          <option value="budget-desc">예산순(내림차순)</option>
+          <option value="budget-asc">예산순(오름차순)</option>
+          <option value="change-abs-desc">증감률순(절대값 내림차순)</option>
+          <option value="change-desc">증감률 높은순</option>
+          <option value="change-asc">증감률 낮은순</option>
+          <option value="department">부처순(가나다)</option>
+          <option value="code">사업코드순</option>
+          <option value="name">사업명순(가나다)</option>
+          <option value="type">유형순</option>
+        </select>
+        <div class="view-toggle">
+          <button class="btn active" id="view-project-btn" onclick="setListMode('project')">사업별 보기</button>
+          <button class="btn" id="view-sub-btn" onclick="setListMode('sub')">내역사업별 보기</button>
+        </div>
+        <div class="view-toggle" style="margin-left:8px">
+          <button class="btn active" id="view-table-btn" onclick="setView('table')">표</button>
+          <button class="btn" id="view-card-btn" onclick="setView('card')">카드</button>
+        </div>
+        <button class="btn-export" onclick="exportProjectCSV()">CSV 다운로드</button>
+        <button class="btn-export excel" onclick="exportProjectExcel()">Excel 다운로드</button>
+      </div>
+      <div id="project-count" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;"></div>
+      <div id="project-list-container"></div>
+      <div class="pagination" id="project-pagination"></div>
+      <button class="scroll-to-top-btn" id="scroll-to-top-btn" onclick="scrollVirtualTop()"
+        title="맨 위로">&#9650;</button>
+    </div>
+
+    <!-- Flow Tab -->
+    <!-- Sankey detail modal (used by flow sub-tab in insight) -->
+    <div class="modal-overlay" id="sankey-detail-modal" style="display:none">
+      <div class="modal" style="max-width:800px;width:90vw;max-height:85vh;padding:24px;position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 id="sankey-detail-title" style="margin:0;font-size:16px"></h3>
+          <button class="modal-close"
+            onclick="document.getElementById('sankey-detail-modal').style.display='none';document.body.style.overflow=''">&times;</button>
+        </div>
+        <div id="sankey-detail-body" style="overflow-y:auto;max-height:calc(85vh - 100px)"></div>
+      </div>
+    </div>
+
+    <!-- Policy Cluster Tab -->
+    <div class="tab-content" id="tab-policy" role="tabpanel" aria-labelledby="tab-btn-policy"></div>
+    <div class="tab-content" id="tab-cross-compare" role="tabpanel" aria-labelledby="tab-btn-cross-compare"></div>
+    <div class="tab-content" id="tab-future" role="tabpanel" aria-labelledby="tab-btn-future"></div>
+    <div class="tab-content" id="tab-insight" role="tabpanel" aria-labelledby="tab-btn-insight"></div>
+    <div class="tab-content" id="tab-ai-tech" role="tabpanel" aria-labelledby="tab-btn-ai-tech"></div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="project-modal">
+    <div class="modal" id="modal-content"></div>
+  </div>
+
+  <div class="modal-overlay" id="chart-expand-modal" style="display:none">
+    <div class="modal" style="max-width:95vw;width:95vw;max-height:92vh;padding:20px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 id="chart-expand-title" style="margin:0;font-size:16px"></h3>
+        <button class="modal-close" onclick="closeChartExpand()">&times;</button>
+      </div>
+      <div id="chart-expand-body" style="width:100%;height:calc(92vh - 80px);overflow:auto;position:relative"></div>
+    </div>
+  </div>
+
+  <!-- Similarity Compare Modal -->
+  <div class="modal-overlay" id="sim-compare-modal">
+    <div class="modal" style="max-width:95vw;width:1100px;max-height:92vh;padding:0;position:relative">
+      <div id="sim-compare-content" style="overflow-y:auto;max-height:92vh;padding:24px"></div>
+    </div>
+  </div>
+
+  <!-- Compare Toolbar (fixed bottom) -->
+  <div class="compare-toolbar" id="compare-toolbar">
+    <span class="compare-count" id="compare-count">0개 선택</span>
+    <button class="btn-compare" id="btn-compare" onclick="openCompareModal()" disabled>선택 비교</button>
+    <button class="btn-clear" onclick="clearCompareSelection()">초기화</button>
+  </div>
+
+  <!-- Compare Modal -->
+  <div class="modal-overlay" id="compare-modal">
+    <div class="modal compare-modal" id="compare-modal-content"></div>
+  </div>
+
+  <!-- Press Report Modal -->
+  <div class="modal-overlay" id="press-report-modal">
+    <div class="modal" style="max-width:720px;width:90vw;max-height:90vh;padding:24px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0;font-size:18px">보도자료용 통계</h3>
+        <button class="modal-close" onclick="closePressReport()">&times;</button>
+      </div>
+      <div id="press-report-content"
+        style="overflow-y:auto;max-height:calc(90vh - 120px);font-size:14px;line-height:1.8;white-space:pre-wrap;font-family:'Pretendard Variable',monospace;background:var(--bg-primary);padding:16px;border-radius:8px;border:1px solid var(--border)">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+        <button onclick="copyPressReport()"
+          style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit">클립보드
+          복사</button>
+        <button onclick="downloadPressReportMd()"
+          style="padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit">Markdown
+          다운로드</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes Manager Modal -->
+  <div class="modal-overlay" id="notes-manager-modal">
+    <div class="modal" style="max-width:800px;width:90vw;max-height:90vh;padding:24px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0;font-size:18px">&#128221; 메모 관리</h3>
+        <button class="modal-close" onclick="closeNotesManager()">&times;</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button onclick="exportAllNotes()"
+          style="padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit">전체
+          내보내기 (JSON)</button>
+        <label
+          style="padding:6px 14px;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;display:inline-flex;align-items:center">
+          가져오기
+          <input type="file" accept=".json" onchange="importNotes(event)" style="display:none">
+        </label>
+        <button onclick="clearAllNotes()"
+          style="padding:6px 14px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit">전체
+          삭제</button>
+      </div>
+      <div id="notes-manager-content" style="overflow-y:auto;max-height:calc(90vh - 160px)"></div>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div class="tooltip" id="tooltip"></div>
+
+
+  <!-- Data Blocks -->
+  <script src="js/embedded-sim-v10-data.js"></script>
+  <script src="js/embedded-collab-data.js"></script>
+  <script src="js/embedded-hybrid-data.js"></script>
+  <script src="js/embedded-data.js"></script>
+
+  <!-- Core & Utilities -->
+  <script src="js/common.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/tabs/department.js"></script>
+  <script src="js/tabs/field.js"></script>
+  <script src="js/tabs/duplicate.js"></script>
+  <script src="js/tab-handler.js"></script>
+
+  <!-- Feature Modules -->
+  <script src="js/budget-advanced.js"></script>
+  <script src="js/network-viz.js"></script>
+  <script src="js/cross-compare.js"></script>
+  <script src="js/report-logic.js"></script>
+  <script src="js/policy-cluster.js"></script>
+  <script src="js/future-sim.js"></script>
+  <script src="js/notes-pdf.js"></script>
+  <script src="js/budget-insight.js"></script>
+  <script src="js/ai-tech.js"></script>
+
+  <!-- Main Application Entry -->
+  <script src="js/app.js"></script>
+</body>
+
+</html>
