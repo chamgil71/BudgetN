@@ -13,38 +13,38 @@
   <link href="css/main.css" rel="stylesheet">
   <link id="theme-link" rel="stylesheet" href="">
   
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script>
-    (function() {
-        // 2. 환경 변수 설정
-        const supabaseUrl = '%VITE_SUPABASE_URL%';
-        const supabaseKey = '%VITE_SUPABASE_ANON_KEY%';
+  <script>
+      (function() {
+          // 2. 환경 변수 설정
+          const supabaseUrl = '%VITE_SUPABASE_URL%';
+          const supabaseKey = '%VITE_SUPABASE_ANON_KEY%';
 
-        // 3. 라이브러리 객체 찾기 (버전에 따라 이름이 다를 수 있음)
-        const lib = window.supabase || window.supabasejs;
+          // 3. 라이브러리 객체 찾기 (버전에 따라 이름이 다를 수 있음)
+          const lib = window.supabase || window.supabasejs;
 
-        if (!lib) {
-            console.error("Supabase 라이브러리를 로드하지 못했습니다.");
-            return;
-        }
+          if (!lib) {
+              console.error("Supabase 라이브러리를 로드하지 못했습니다.");
+              return;
+          }
 
-        // 4. 클라이언트 생성 (변수명 충돌 방지를 위해 _client 붙임)
-        window._client = lib.createClient(supabaseUrl, supabaseKey);
+          // 4. 클라이언트 생성 (변수명 충돌 방지를 위해 _client 붙임)
+          window._client = lib.createClient(supabaseUrl, supabaseKey);
 
-        async function checkUser() {
-            try {
-                const { data: { user } } = await window._client.auth.getUser();
-                if (!user) {
-                    window.location.replace("login.html");
-                }
-            } catch (e) {
-                console.error("인증 체크 중 오류 발생:", e);
-            }
-        }
+          async function checkUser() {
+              try {
+                  const { data: { user } } = await window._client.auth.getUser();
+                  if (!user) {
+                      window.location.replace("login.html");
+                  }
+              } catch (e) {
+                  console.error("인증 체크 중 오류 발생:", e);
+              }
+          }
 
-        checkUser();
-    })();
+          checkUser();
+      })();
   </script>
 </head>
 
