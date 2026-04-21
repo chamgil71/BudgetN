@@ -1,7 +1,102 @@
-# KAIB2026 Dashboard GitHub 배포 가이드
+# BudgetN Dashboard GitHub 배포 가이드
+
+> 저장소: `https://github.com/chamgil71/BudgetN.git`  
+> 배포 URL: `https://budget-n.vercel.app`  
+> 인증: Supabase 이메일 로그인 (프로젝트 ID: `syxpwvmniwzohmxmvlyl`)
 
 프로젝트가 백엔드/데이터 스크립트와 프론트엔드(`web/`) 뷰로 완벽히 분리되었습니다. 
 해당 폴더 구조를 기반으로 GitHub Pages 또는 Vercel을 통해 매우 쉽게 무료 호스팅/배포가 가능합니다.
+
+---
+
+## 현재 설정 (2026-04-21 기준)
+
+### 구조
+
+```
+BudgetN/ (git 루트)
+├── web/                        ← Vercel Root Directory
+│   ├── index.html              ← 메인 앱 (로그인 후 진입, visibility:hidden으로 시작)
+│   ├── login.html              ← 로그인 페이지 (Supabase Auth)
+│   ├── vercel.json             ← Vercel 빌드/라우팅 설정 (web/ 안에 위치)
+│   ├── vite.config.js          ← login.html 멀티 엔트리 빌드 설정
+│   ├── js/, css/, data/        ← 정적 리소스
+│   └── dist/                   ← 빌드 출력 (Vercel 서빙)
+└── backend/, docs/, ...
+```
+
+### vercel.json (`web/vercel.json`)
+
+```json
+{
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/((?!login\\.html$|assets/|data/|js/|css/).*)", "destination": "/index.html" }
+  ]
+}
+```
+
+> **핵심**: Vercel Root Directory = `web` 이면 vercel.json도 반드시 `web/` 안에 있어야 한다.
+
+### Vercel 대시보드 설정
+
+| 항목 | 값 |
+|---|---|
+| Root Directory | `web` |
+| Build Command | `npm install && npm run build` |
+| Output Directory | `dist` |
+
+### Vercel 환경변수
+
+| Key | Value |
+|---|---|
+| `VITE_SUPABASE_URL` | `https://syxpwvmniwzohmxmvlyl.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Supabase 콘솔에서 확인 |
+
+---
+
+## 인증 흐름 (Supabase)
+
+```
+사용자 접속 (/)
+    ↓
+index.html 로드 → Supabase getUser() 호출 (body visibility:hidden 상태)
+    ↓
+미로그인 → login.html 리다이렉트
+    ↓
+이메일 + 비밀번호 입력 → signInWithPassword()
+    ↓
+성공 → index.html (body visibility 복원, 앱 표시)
+```
+
+- `window._client`: index.html 인라인 스크립트에서 생성한 Supabase 클라이언트
+- `window.authClient`: login.html에서 사용하는 Supabase 클라이언트
+- 로그아웃: `window._client.auth.signOut().then(() => location.reload())`
+
+### Supabase URL Configuration
+
+[Supabase 콘솔 → Authentication → URL Configuration](https://supabase.com/dashboard/project/syxpwvmniwzohmxmvlyl/auth/url-configuration)
+
+| 항목 | 값 |
+|---|---|
+| Site URL | `https://budget-n.vercel.app` |
+| Redirect URLs | `https://budget-n.vercel.app/**` |
+
+> 3개 사이트가 동일 Supabase 프로젝트를 공유하므로 `auth.users`에 등록된 사용자는 모든 사이트 로그인 가능
+
+---
+
+## 빈 화면 문제 원인 및 해결 (2026-04-21 해결)
+
+| 원인 | 증상 | 해결 |
+|---|---|---|
+| `vercel.json` 없음 | Vercel이 빌드 방법을 모름 | `web/vercel.json` 생성 |
+| `%VITE_SUPABASE_URL%` 미치환 | Supabase 초기화 실패 → `visibility:hidden` 유지 → 빈 화면 | Vercel 환경변수 등록 |
+| `vercel.json` 위치 오류 | Root Directory=`web`인데 루트에 파일 위치 | `web/` 안으로 이동 |
+
+---
 
 ## 방법 1. Vercel 을 이용한 강력하고 빠른 배포 (추천)
 Vite 기반 프로젝트의 경우, Vercel을 연동하면 클릭 몇 번만으로 브랜치에 코드를 푸시할 때마다 자동 배포가 이루어집니다.
