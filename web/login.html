@@ -1,14 +1,107 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8"> <title>BudgetN - 로그인</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetN - 로그인</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: -0.5px;
+        }
+        .logo p {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .field { margin-bottom: 16px; }
+        .field label {
+            display: block;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .field input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #f1f5f9;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .field input:focus { border-color: #3b82f6; }
+        .field input::placeholder { color: #475569; }
+        .btn {
+            width: 100%;
+            padding: 11px;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #2563eb; }
+        .btn:disabled { background: #1e3a5f; color: #64748b; cursor: not-allowed; }
+        .msg {
+            margin-top: 14px;
+            font-size: 13px;
+            text-align: center;
+            min-height: 20px;
+        }
+        .msg.error { color: #f87171; }
+        .msg.success { color: #4ade80; }
+    </style>
 </head>
 <body>
-    <h2>BudgetN 로그인</h2>
-    <input type="email" id="email" placeholder="이메일">
-    <input type="password" id="password" placeholder="비밀번호">
-    <button onclick="signIn()">로그인</button>
+    <div class="card">
+        <div class="logo">
+            <h1>>BudgetN 로그인</h1>
+            <p>사업 데이터 분석 플랫폼</p>
+        </div>
+        <div class="field">
+            <label for="email">이메일</label>
+            <input type="email" id="email" placeholder="이메일 주소 입력">
+        </div>
+        <div class="field">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter') signIn()">
+        </div>
+        <button class="btn" id="login-btn" onclick="signIn()">로그인</button>
+        <div class="msg" id="msg"></div>
+    </div>
 
     <script>
         (function() {
@@ -17,24 +110,38 @@
             
             // 변수명을 authClient로 바꿔서 중복 선언 에러를 방지합니다.
             const lib = window.supabase || window.supabasejs;
+                        if (!lib) { document.getElementById('msg').textContent = 'Supabase 로드 실패'; return; }
             window.authClient = lib.createClient(url, key);
         })();
 
         async function signIn() {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+                        const btn = document.getElementById('login-btn');
+            const msg = document.getElementById('msg');
 
-            // authClient를 사용하여 로그인 시도
-            const { data, error } = await window.authClient.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
+            if (!email || !password) { msg.className = 'msg error'; msg.textContent = '이메일과 비밀번호를 입력하세요.'; return; }
 
-            if (error) {
-                alert("로그인 실패: " + error.message);
-            } else {
-                alert("로그인 성공!");
-                window.location.replace("index.html");
+            btn.disabled = true;
+            btn.textContent = '로그인 중...';
+            msg.textContent = '';
+
+            try {
+                const { data, error } = await window.authClient.auth.signInWithPassword({ email, password });
+                if (error) {
+                    msg.className = 'msg error';
+                    msg.textContent = '로그인 실패: ' + error.message;
+                } else {
+                    msg.className = 'msg success';
+                    msg.textContent = '로그인 성공! 이동 중...';
+                    window.location.href = '/';
+                }
+            } catch(e) {
+                msg.className = 'msg error';
+                msg.textContent = '오류가 발생했습니다.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '로그인';
             }
         }
     </script>
