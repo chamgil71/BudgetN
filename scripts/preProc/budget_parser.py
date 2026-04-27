@@ -404,6 +404,8 @@ class BudgetParser:
                     f"budget_{y2}": val_y2,
                     f"budget_{y1}": val_y1,
                     f"budget_{y0}": val_y0,
+                    "budget_prev": val_y1,
+                    "budget_base": val_y0,
                 })
 
             # project_managers는 예산 유무와 무관하게 항상 추가 (관리자 정보 보존)

@@ -73,8 +73,8 @@ def build_summary(ws, meta, cfg):
         ("R&D 사업",           f"{meta.get('rnd_projects',0):,}개"),
         ("정보화 사업",        f"{meta.get('info_projects',0):,}개"),
         ("신규 사업",          f"{meta.get('new_projects',0):,}개"),
-        (f"{Y['original']} 본예산 합계",   f"{meta.get('total_budget_' + Y['original'], 0):,.0f} 백만원"),
-        (f"{Y['budget']} 확정예산 합계", f"{meta.get('total_budget_' + Y['budget'], 0):,.0f} 백만원"),
+        (f"{Y['original']} 본예산 합계",   f"{meta.get('total_budget_' + str(Y['original']), 0):,.0f} 백만원"),
+        (f"{Y['budget']} 확정예산 합계", f"{meta.get('total_budget_' + str(Y['budget']), 0):,.0f} 백만원"),
         ("전년 대비 증감",     f"{meta.get('budget_change',0):+,.0f} 백만원"),
         ("데이터 추출일",      meta.get("extraction_date","")),
         ("원본 자료",          meta.get("source","")),
@@ -353,8 +353,8 @@ def main():
         if do_protect: protect(ws,pw)
 
     wb.save(out_path)
-    print(f"✅ 완료: {out_path}")
-    print(f"   시트: {[s.title for s in wb.worksheets]}")
+    print(f"Completed: {out_path}")
+    print(f"Sheets: {[s.title for s in wb.worksheets]}")
 
 if __name__=="__main__":
     main()

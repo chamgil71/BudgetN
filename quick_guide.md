@@ -1,69 +1,82 @@
-# ⚡ KAIB2026 운영자 퀵 가이드 (Quick Guide)
-> **Fast-Track Operations & Deployment**
+# Quick Guide
 
-본 문서는 데이터 업데이트부터 웹 배포까지 빈번하게 쓰이는 핵심 명령어 및 절차를 요약합니다.
+자주 쓰는 운영 명령만 빠르게 정리한 문서입니다.
 
----
-
-## 📌 상황 1: PDF 예산서에서 처음부터 데이터를 추출할 때
-비정형 PDF 파일을 `input/` 폴더에 넣고 다음 단계를 순차적으로 실행합니다.
-
-1. **PDF 텍스트/표 추출**
-   ```bash
-   python scripts/preProc/pdf_to_json.py -i ./input
-   ```
-2. **사업 단위 분할 및 정밀 파싱**
-   ```bash
-   python scripts/preProc/budget_parser.py -i ./input -o ./output/individual
-   ```
-3. **최종 병합 및 스키마 검증**
-   ```bash
-   python scripts/preProc/json_manager.py merge -i ./output/individual -o ./output/merged.json
-   ```
-
----
-
-## 📌 상황 2: 엑셀(XLSX) 파일을 수정/추가하여 통합할 때
-`input/` 폴더에 수정된 엑셀 파일을 넣고 통합 빌드를 수행합니다.
-
+## 1. PDF에서 시작할 때
 ```bash
-# 엑셀 임포트 -> JSON 병합 -> AI 분석(유사도/협업) 일괄 수행
-python scripts/pipeline/master_builder.py build
+python scripts/preProc/main_cli.py -i database/src -y
+```
 
-# 생성된 결과를 웹 대시보드(web/data)에 배포
+산출물:
+- `database/raw/*_raw.json`
+- `database/structure/*_structured.json`
+- `database/parse_result/*_parsed.json`
+
+## 2. 총괄 XLSX / A4 XLSX를 merged.json으로 반영할 때
+먼저 총괄 XLSX 템플릿이 필요하면:
+```bash
+python scripts/pipeline/excel_manager.py template
+```
+
+그 다음 import:
+```bash
+python scripts/pipeline/excel_manager.py import --type both
+```
+
+주의:
+- 총괄 XLSX는 다중 시트 구조가 필요합니다.
+- A4 XLSX는 Named Range 기반입니다.
+- 기본 템플릿 파일은 `template_project.xlsx`입니다.
+
+## 3. 빌드
+```bash
+python scripts/pipeline/master_builder.py build
+```
+
+의도:
+- 입력 데이터 통합
+- 분석 JSON 생성
+- 스냅샷 생성
+
+## 4. 배포
+```bash
 python scripts/pipeline/master_builder.py deploy
 ```
 
----
+산출물:
+- `web/data/budget_db.json`
+- `web/data/similarity_analysis.json`
+- `web/data/collaboration_analysis.json`
+- `web/js/embedded-*.js`
 
-## 📌 상황 3: 오프라인(폐쇄망) 배포용 단일 HTML 제작
-인터넷이나 서버 구동이 불가능한 환경(USB 배포 등)을 위해 모든 데이터를 포함한 HTML 통파일을 생성합니다.
-
+## 5. 단일 HTML 번들
 ```bash
-# 단일 HTML 압축 생성 (20MB 내외)
 python scripts/pipeline/master_builder.py bundle
 ```
-- **산출물**: `output/KAIB2026_Standalone.html` (클릭 시 즉시 구동)
 
----
+## 6. 현재 구조 핵심
+```text
+parsed/xlsx/yaml -> merged.json -> budget_db.json -> analysis -> web/data -> embedded js -> web
+```
 
-## 📌 상황 4: 특정 키워드 검색 동의어 추가
-"AI 반도체" 검색 시 "지능형 반도체"가 함께 나오도록 설정합니다.
+## 7. 템플릿 체크포인트
 
-1. `config/config.yaml`의 `search_aliases:` 하단에 키워드 추가
-   ```yaml
-   search_aliases:
-     '지능형 반도체': ['AI 반도체', 'AI-Semiconductor']
-   ```
-2. `master_builder.py build` -> `deploy` 재실행
+### 총괄 XLSX
+- 시트명:
+  - `사업목록`
+  - `내역사업`
+  - `사업관리자`
+  - `사업연혁`
+  - `연도별예산`
+- 헤더 행: 2행
+- 데이터 시작 행: 3행
 
----
+### A4 XLSX
+- Named Range 필수
+- `config/config_a4.yaml` 기준 유지
 
-## 💡 대시보드 검색 꿀팁 (Advanced Search)
-대시보드 상단 검색창은 다음의 특수 구문을 지원합니다.
-
-- **AND 검색 (공백)**: `로봇 인공지능` (두 키워드 모두 포함)
-- **OR 검색 (`|`)**: `의료 | 실감` (둘 중 하나라도 포함)
-- **NOT 검색 (`-`)**: `인공지능 -인력` (인공지능 포함, 인력양성 제외)
-- **구문 검색 (`""`)**: `"스마트 공정"` (정확히 일치하는 문구만)
-- **부처 검색**: `과기부` (동의어 사전에 의해 과학기술정보통신부 자동 검색)
+## 8. 현재 가장 중요한 보완점
+1. `database/output/merged.json`을 canonical final로 고정
+2. 기존 데이터셋 재빌드로 `sub_projects[].budget_base` 반영
+3. 생성 템플릿을 운영 기준으로 고정
+4. 협업 분석 JSON 구조 보강

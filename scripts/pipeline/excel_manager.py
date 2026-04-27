@@ -25,6 +25,7 @@ import export_xlsx
 import export_a4
 import convert
 import convert_a4
+import generate_summary_template
 
 def run_export(args, unknown_args):
     """ 내보내기 로직 분기 """
@@ -55,6 +56,15 @@ def run_import(args, unknown_args):
         print("=== [Import: A4 Excel] ===")
         convert_a4.main()
 
+
+def run_template(args):
+    """총괄 XLSX import 템플릿 생성"""
+    sys.argv = [sys.argv[0]]
+    if args.out:
+        sys.argv += ["--out", args.out]
+    print("=== [Template: Summary Excel] ===")
+    generate_summary_template.main()
+
 def main():
     parser = argparse.ArgumentParser(description="통합 Excel 매니저 (KAIB2026)")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -70,12 +80,17 @@ def main():
                                help="읽어들일 원본 엑셀 형식")
     import_parser.add_argument("--file", default=None, help="단일 파일 경로 (지정 안 하면 폴더 스캔)")
 
+    template_parser = subparsers.add_parser("template", help="총괄 XLSX import 템플릿 생성")
+    template_parser.add_argument("--out", default=None, help="출력 경로")
+
     args, unknown = parser.parse_known_args()
 
     if args.command == "export":
         run_export(args, unknown)
     elif args.command == "import":
         run_import(args, unknown)
+    elif args.command == "template":
+        run_template(args)
 
 if __name__ == "__main__":
     main()

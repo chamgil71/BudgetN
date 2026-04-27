@@ -255,17 +255,46 @@ def _flatten(d, prefix=""):
 # ── yearly_budgets 갱신 ───────────────────────────────────────
 def update_yearly_budgets(project, years_cfg):
     """budget 슬라이딩 값을 yearly_budgets에 누적"""
+    Y = get_years({"years": years_cfg} if years_cfg else None)
     yb = project.get("yearly_budgets") or {}
     b  = project.get("budget") or {}
     mapping = {
-        years_cfg.get("settlement"): b.get("2024_settlement"),
-        years_cfg.get("original"):   b.get("2025_original"),
-        years_cfg.get("budget"):     b.get("2026_budget"),
+        Y["settlement"]: b.get(f"{Y['settlement']}_settlement"),
+        Y["original"]:   b.get(f"{Y['original']}_original"),
+        Y["budget"]:     b.get(f"{Y['budget']}_budget"),
     }
     for yr, val in mapping.items():
         if yr and val is not None:
             yb[str(yr)] = val
     project["yearly_budgets"] = yb
+
+
+def normalize_sub_projects(project, cfg):
+    """프론트 호환을 위해 sub_projects 구조를 canonical 형태로 보정"""
+    Y = get_years(cfg)
+    sub_years = Y.get("sub_years", [Y["settlement"], Y["original"], Y["budget"]])
+    base_key = f"budget_{Y['budget']}"
+    prev_key = f"budget_{Y['original']}"
+    normalized = []
+
+    for sub in project.get("sub_projects") or []:
+        if not isinstance(sub, dict):
+            continue
+
+        item = dict(sub)
+        for yr in sub_years:
+            item.setdefault(f"budget_{yr}", 0.0)
+
+        if item.get("parent_id") in (None, ""):
+            item["parent_id"] = project.get("code", "")
+        if item.get("budget_base") is None:
+            item["budget_base"] = item.get(base_key) or 0.0
+        if item.get("budget_prev") is None:
+            item["budget_prev"] = item.get(prev_key) or 0.0
+
+        normalized.append(item)
+
+    project["sub_projects"] = normalized
 
 
 # ── 빈 project 구조 생성 ──────────────────────────────────────
@@ -434,6 +463,8 @@ def read_sub_sheet(wb, cfg, projects, logger):
         if pc and pc in code_to_idx:
             projects[code_to_idx[pc]]["sub_projects"].append(sub)
 
+    for project in projects:
+        normalize_sub_projects(project, cfg)
     logger.info("  → 내역사업 시트 처리 완료")
 
 
@@ -607,6 +638,7 @@ def read_json_file(file_path, cfg, logger):
             
         apply_derived(p, cfg.get("derived_fields", {}), logger)
         update_yearly_budgets(p, cfg.get("years", {}))
+        normalize_sub_projects(p, cfg)
         valid_projects.append(p)
         
     logger.info(f"📂 {file_path.name} (JSON 마이그레이션 적용 완료: {len(valid_projects)}건)")
@@ -661,29 +693,33 @@ def save_merged(new_projects, cfg, logger):
     # 고정값(Stable) 해시 ID 재발번 (AI 의존성 끊김 방지)
     import hashlib
     for p in all_projects:
+        normalize_sub_projects(p, cfg)
         raw_str = f"{p.get('department', '')}_{p.get('project_name', '')}_{p.get('code', '')}"
         stable_hash = hashlib.md5(raw_str.encode('utf-8')).hexdigest()[:8].upper()
         p["id"] = f"PRJ-{stable_hash}"
 
     # metadata 계산
-    total_2026 = sum((p.get("budget") or {}).get("2026_budget") or 0 for p in all_projects)
-    total_2025 = sum((p.get("budget") or {}).get("2025_original") or 0 for p in all_projects)
+    Y = get_years(cfg)
+    total_budget = sum((p.get("budget") or {}).get(f"{Y['budget']}_budget") or 0 for p in all_projects)
+    total_original = sum((p.get("budget") or {}).get(f"{Y['original']}_original") or 0 for p in all_projects)
     depts = {p.get("department") for p in all_projects if p.get("department")}
 
     merged = {
         "metadata": {
             "total_projects":    len(all_projects),
             "total_departments": len(depts),
-            "total_budget_2026": total_2026,
-            "total_budget_2025": total_2025,
-            "budget_change":     total_2026 - total_2025,
+            f"total_budget_{Y['budget']}": total_budget,
+            f"total_budget_{Y['original']}": total_original,
+            "total_budget_2026": total_budget if Y["budget"] == 2026 else None,
+            "total_budget_2025": total_original if Y["original"] == 2025 else None,
+            "budget_change":     total_budget - total_original,
             "rnd_projects":      sum(1 for p in all_projects if p.get("is_rnd")),
             "info_projects":     sum(1 for p in all_projects if p.get("is_informatization")),
             "new_projects":      sum(1 for p in all_projects if p.get("status") == "신규"),
             "budget_mismatch_count": 0,
             "extraction_date":   datetime.date.today().isoformat(),
             "source":            cfg.get("metadata", {}).get("source", "KAIB 파이프라인"),
-            "base_year":         cfg.get("base_year", 2026),
+            "base_year":         Y["base_year"],
         },
         "projects": all_projects,
         "analysis": {

@@ -1,88 +1,183 @@
-# KAIB2026 상세 기술 가이드 및 운영 매뉴얼
-> **Advanced Technical Reference for Budget Data Infrastructure**
+# BudgetN Guide
 
-본 문서는 파이프라인의 내부 작동 원리, 데이터 정합성 유지 방법, 그리고 프론텍엔드와 백엔드 간의 의존성 전반을 다룹니다.
+본 문서는 현재 운영 기준의 BudgetN 데이터 파이프라인, 입출력 파일, 프론트 의존성, 템플릿 조건을 정리한 기술 가이드입니다.
 
----
+## 1. 운영 기준 7단계
 
-## 1. 📂 스크립트 도구함 (Scripts Toolbox)
+### 1단계. PDF -> raw -> structured -> parsed
+- 입력: `database/src/*.pdf`
+- 스크립트:
+  - `scripts/preProc/pdf_to_json.py`
+  - `scripts/preProc/json_structurer.py`
+  - `scripts/preProc/budget_parser.py`
+- 산출물:
+  - `database/raw/*_raw.json`
+  - `database/structure/*_structured.json`
+  - `database/parse_result/*_parsed.json`
 
-파이프라인은 기능에 따라 3개의 주요 디렉토리로 나뉩니다.
+### 2단계. parsed / xlsx / yaml -> merged.json
+- 목적: 모든 입력 포맷을 canonical schema로 통합
+- canonical master: `database/output/merged.json`
+- 현재 구현 경로:
+  - 총괄 XLSX: `scripts/pipeline/convert.py`
+  - A4 XLSX: `scripts/pipeline/convert_a4.py`
+  - JSON 마이그레이션: `scripts/pipeline/convert.py`
+  - PDF parsed 병합: 현재 별도 정리 필요
 
-### 1-1. `scripts/preProc/` (전처리 레이어)
-비정형 PDF 데이터를 정형 JSON으로 변환하는 초기 단계입니다.
-- **`pdf_to_json.py`**: `pdfplumber`를 이용해 PDF 내의 텍스트 상자와 2D 테이블 구조를 원시 형태(`_raw.json`)로 추출합니다.
-- **`budget_parser.py`**: 전처리 엔진의 핵심입니다. 정규식을 통해 (번호-사업명-코드) 패턴을 찾아 사업을 분할하고, `budget_2026` 등 핵심 예산을 추출합니다.
-- **`json_manager.py`**: 개별 파싱된 JSON 파일들을 `template_schema.json` 기준으로 검증(Validate)하고 하나로 병합(Merge)합니다.
+### 3단계. merged.json -> budget_db.json
+- 목적: 프론트 배포본 생성
+- 현재 구현:
+  - `scripts/pipeline/master_builder.py deploy`
+- 산출물:
+  - `web/data/budget_db.json`
 
-### 1-2. `scripts/pipeline/` (빌드 및 배포 레이어)
-데이터 통합 및 웹 배포를 제어합니다.
-- **`master_builder.py`**: 전체 파이프라인의 **오케스트레이터**입니다. `build`, `deploy`, `bundle` 명령을 통합 관리합니다.
-- **`excel_manager.py`**: XLSX 파일과 JSON 간의 변환을 라우팅하며, `convert.py`를 호출하여 엑셀 데이터를 임포트합니다.
-- **`rebuild_embedded.py`**: `web/data`의 거대 JSON을 JS 변수 형태(`web/js/embedded-data.js`)로 변환하여 브라우저 로딩 속도를 최적화합니다.
+### 4단계. budget_db.json 기반 metadata / analysis 생성
+- 스크립트:
+  - `scripts/analysis/generate_ai_analysis.py`
+- 산출물:
+  - `metadata` 갱신
+  - `analysis` 기본 집계 갱신
+  - `similarity_analysis.json`
+  - `collaboration_analysis.json`
 
-### 1-3. `scripts/analysis/` (AI 분석 레이어)
-데이터 간의 논리적 연결을 생성합니다.
-- **`generate_ai_analysis.py`**: `scikit-learn`의 TF-IDF 벡터라이저를 사용하여 사업 목적과 키워드 간의 유사도를 계산합니다. `similarity_analysis.json`과 `collaboration_analysis.json`을 생성하며, 이는 대시보드의 '유사성'/'협업' 탭에서 시각화됩니다.
+### 5단계. web/data 배포
+- 복사 대상:
+  - `budget_db.json`
+  - `similarity_analysis.json`
+  - `collaboration_analysis.json`
 
----
+### 6단계. embedded JS 재생성
+- 스크립트:
+  - `scripts/pipeline/rebuild_embedded.py`
+- 산출물:
+  - `web/js/embedded-data.js`
+  - `web/js/embedded-sim-v10-data.js`
+  - `web/js/embedded-collab-data.js`
+  - `web/js/embedded-hybrid-data.js`
 
-## 2. ⚙️ 설정 가이드 (Configuration: `config.yaml`)
+### 7단계. web 프론트 구동
+- 기본 페이지:
+  - `web/index.html`
+  - `web/duplicate.html`
+- 핵심 입력:
+  - `web/data/budget_db.json`
+  - sidecar JSON 및 embedded JS
 
-`config/config.yaml`은 시스템의 모든 환경변수와 맵핑 룰을 정의합니다.
+## 2. canonical 데이터 기준
 
-- **`years` 섹션**:
-  - `base_year`: 2026 (현재 기준 연도 설정)
-  - `label_*`: 엑셀 헤더에서 찾을 연도 레이블 정의
-- **`xlsx.column_mapping`**: 엑셀 컬럼명과 JSON 필드 간의 1:1 매칭 정의.
-  - `{base}`, `{prev}` 등의 플레이스홀더를 사용하여 연도 변경 시 자동 대응합니다.
-- **`search_aliases`**: "과기부" 검색 시 "과학기술정보통신부"가 결과에 포함되도록 하는 동의어 사전입니다.
-- **`validation`**: 필수 필드(`code`, `project_name` 등) 누락 시 에러 발생 조건을 설정합니다.
+### 루트 구조
+```json
+{
+  "metadata": {},
+  "projects": [],
+  "analysis": {}
+}
+```
 
----
+### 최소 필수 필드
+- `metadata.base_year`
+- `metadata.total_projects`
+- `projects[*].id`
+- `projects[*].project_name`
+- `projects[*].code`
+- `projects[*].department`
+- `projects[*].budget`
+- `projects[*].sub_projects`
+- `projects[*].project_period`
 
-## 3. 📊 데이터 스키마 및 ID 발급 규칙
+### ID 정책
+- 권장: `convert.py`의 stable hash id
+- 이유:
+  - 연도 변경 시에도 ID 안정성 유지
+  - 프론트 참조와 sidecar 분석 조인 안정성 확보
 
-시스템은 데이터 정합성을 위해 다음과 같은 고정 ID 체계를 따릅니다.
+## 3. XLSX -> merged.json 템플릿 조건
 
-### ID 발급 메커니즘 (`id` 필드)
-- 원본의 `code`, `project_name`, `department`를 조합하여 MD5 해시를 생성합니다.
-- 결과값: `PRJ-A1B2C3D4` 형태
-- **장점**: 엑셀의 행 순서가 바뀌거나 파일명이 변경되어도, 사업 내용이 같다면 동일한 고정 ID를 유지하여 AI 분석 결과 및 메모 기능을 보존합니다.
+### 현재 상태
+현재 저장소에는 공식 총괄 XLSX 템플릿 생성 경로가 있습니다.
 
-### 핵심 예산 필드 규격
-- `budget.2026_budget`: 올해 본예산 (확정/요구)
-- `budget.2025_original`: 전년도 본예산
-- `budget.2024_settlement`: 전전년도 결산액
-- `budget.change_amount`: 증감액 (자동 계산)
-- `budget.change_rate`: 증감률 (자동 계산)
+생성 명령:
+```bash
+python scripts/pipeline/excel_manager.py template
+```
 
----
+기본 출력 파일:
+- `template_project.xlsx`
 
-## 🖥 4. 웹 대시보드 구조 및 의존성
+존재하는 템플릿 관련 파일:
+- `web/template/projects_template.csv`
+- `web/template/sub_projects_template.csv`
 
-웹 대시보드(`web/`)는 서버 없이도 동작 가능한 **Zero-Server SPA** 구조입니다.
+이 파일들의 성격:
+- CSV는 컬럼 참고용 예시
+- 공식 import 템플릿은 `template_project.xlsx`
+- `convert.py` 입력 파일로는 생성된 XLSX를 사용
 
-| 탭 / 기능 | 담당 JS 파일 | 필수 데이터 |
-| :--- | :--- | :--- |
-| **전체 초기화** | `app.js` | `budget_db.json` |
-| **사업 목록** | `list-view.js` | `budget_db.json` |
-| **유사성 분석** | `duplicate-sim.js` | `similarity_analysis.json` |
-| **협업 분석** | `policy-cluster.js` | `collaboration_analysis.json` |
-| **미래 시뮬** | `future-sim.js` | `budget_db.json` |
+### 총괄 XLSX 입력 조건
+`convert.py`는 아래 구조를 가진 XLSX/XLSM을 기대합니다.
 
----
+#### 시트명
+- `사업목록`
+- `내역사업`
+- `사업관리자`
+- `사업연혁`
+- `연도별예산`
 
-## 🚨 5. 트러블슈팅 (Troubleshooting)
+#### 시트별 구조
+- 헤더 행: 2행
+- 데이터 시작 행: 3행
+- 기본 데이터 시트: `사업목록`
 
-### Q1. "Duplicate ID" 또는 "Key Error" 발생 시
-- **원인**: 엑셀 내에 동일한 `code`를 가진 행이 존재하거나, 필수 컬럼이 누락됨.
-- **해결**: `logs/` 폴더 내의 최신 로그 파일을 확인하여 중복된 코드나 비어있는 셀을 수정하십시오.
+#### 최소 필수 컬럼
+- `사업코드`
+- `사업명`
+- `부처명`
+- 기준연도 예산 컬럼
 
-### Q2. 연도 변경 후 대시보드 레이블이 바뀌지 않음
-- **원인**: 브라우저 강력 캐시 또는 `rebuild_embedded.py` 미실행.
-- **해결**: `master_builder.py deploy`를 재실행하고, 브라우저에서 `Ctrl + F5`를 눌러 캐시를 초기화하십시오.
+#### 주요 매핑 기준
+- 실제 컬럼명은 `config/config.yaml`의 `xlsx.column_mapping`을 따른다.
+- 연도 관련 컬럼은 `years.base_year`와 `_years.py` 치환 결과에 따라 달라진다.
 
-### Q3. PDF 추출 시 표 데이터가 깨짐
-- **원인**: PDF 내 표 구조가 복합 셀(Merged)로 구성되어 있어 `pdfplumber`가 인식을 실패함.
-- **해결**: `budget_parser.py`의 `clean_table()` 함수 내 예외 처리 로직에 해당 패턴을 추가하거나, 원본 데이터를 엑셀 형태로 변환하여 투입하십시오.
+### A4 XLSX 입력 조건
+`convert_a4.py`는 일반 총괄표와 다른 입력 규칙을 쓴다.
+
+- Named Range 기반
+- 각 시트가 project 1건 또는 project 단위 블록 역할
+- `config/config_a4.yaml`의 `enable_named_ranges: true` 유지 필요
+
+### 템플릿 점검 결론
+- 총괄 XLSX 실템플릿은 코드로 생성 가능
+- CSV 예시는 참고용으로만 유지
+- 운영 기준 템플릿은 `config/config.yaml`의 시트명, 헤더 행, 데이터 시작 행을 그대로 따른다
+
+## 4. 프론트 의존성 점검
+
+### budget_db.json만으로 대체로 되는 영역
+- 개요
+- 부처별 분석
+- 분야별 분석
+- 사업 목록 기본 출력
+
+### 추가 데이터가 필요한 영역
+- 유사성 분석
+- 협업 분석
+- 일부 중복 분석
+- 일부 고급 시각화
+
+### 현재 확인된 구조 이슈
+- 기존 배포 산출물에는 `sub_projects[].budget_base`가 없을 수 있음
+- `collaboration_analysis.json`에 프론트가 기대하는 필드 부족
+  - `collaboration_chains`
+  - `collaboration_network`
+  - `summary_statistics`
+- `budget_db.json.analysis`에 아래 키 없음
+  - `flow`
+  - `clusters`
+  - `collaboration`
+
+## 5. 권장 보완 작업
+1. `database/output/merged.json`을 항상 남기도록 빌드 구조 고정
+2. `sub_projects[].budget_base` 생성
+3. 총괄 XLSX import용 공식 `.xlsx` 템플릿 추가
+4. `collaboration_analysis.json` 구조를 프론트 기대값에 맞게 확장
+5. `config/template.json`을 실제 nested canonical schema 기준으로 갱신

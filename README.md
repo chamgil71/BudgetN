@@ -1,86 +1,193 @@
-# KAIB AI 재정사업 분석 플랫폼 (KAIB2026)
-> **AI-Driven Budget Data Pipeline & Web Dashboard**
+# BudgetN
+> AI budget data pipeline and web dashboard
 
-본 프로젝트는 정부 예산자료(PDF) 및 관리용 엑셀(XLSX) 데이터의 **추출-가공-분석-배포**를 자동화하는 End-to-End 데이터 파이프라인과 이를 시각화하는 웹 대시보드 시스템입니다. 
+본 프로젝트는 정부 예산 자료를 `PDF / XLSX / JSON` 형태로 받아 canonical 데이터베이스인 `merged.json`으로 통합하고, 이를 바탕으로 `budget_db.json`, 분석 결과, 웹 대시보드 배포본까지 생성하는 파이프라인입니다.
 
-단순한 데이터 시각화를 넘어, 부처 간 사업의 유사도를 분석하고 협업 가능성을 도출하는 AI 엔진을 내장하고 있으며, 매년 반복되는 예산 분석 작업을 `config.yaml` 설정 하나로 차년도 체계에 즉각 대응할 수 있도록 설계되었습니다.
+## 개요
+운영 기준 파이프라인은 아래 7단계로 분리합니다.
 
----
+1. `PDF -> raw.json -> structured.json -> parsed.json`
+2. `parsed / xlsx / yaml -> merged.json`
+3. `merged.json -> budget_db.json`
+4. `budget_db.json -> metadata / analysis / similarity / collaboration`
+5. `web/data`로 배포
+6. `embedded-*.js` 재생성
+7. `web/` 프론트엔드 구동
 
-## 🏗 시스템 아키텍처 및 데이터 흐름
+핵심 원칙은 단순합니다.
+- 내부 canonical master: `database/output/merged.json`
+- 프론트 배포본: `web/data/budget_db.json`
+- 프론트는 원본 포맷을 직접 읽지 않고 `budget_db.json`과 sidecar 분석 파일만 읽습니다.
 
-데이터의 무결성과 추적성(Traceability)을 위해 **4단계 분리형 아키텍처**를 채택했습니다.
-
-### 1단계: Extraction (추출)
-- `pdf_to_json.py`: 비정형 PDF(예산서)에서 표와 텍스트를 구조적으로 추출하여 `_raw.json`을 생성합니다.
-- `convert.py`: 엑셀(XLSX, XLSM) 원본 파일을 행 단위로 읽어들입니다.
-
-### 2단계: Processing (정제 및 파싱)
-- `budget_parser.py`: 정규식 앵커와 맵핑 룰을 통해 `_raw.json`을 개별 프로젝트(Project) 단위로 분할하고 예산/속성 값을 추출합니다.
-- `excel_manager.py`: 엑셀 데이터의 스키마를 검증하고 `merged.json`으로 통합 병합을 수행합니다.
-
-### 3단계: AI Analysis (분석)
-- `generate_ai_analysis.py`: 통합된 `merged.json`을 입력받아 TF-IDF 및 Cosine Similarity 알고리즘을 통해 **사업 유사도** 및 **부처 협업 모델**을 자동 생성합니다.
-
-### 4단계: Deploy (웹 배포)
-- `master_builder.py deploy`: 분석 결과를 `web/data`로 배포하고, 구형 브라우저 대응을 위한 `rebuild_embedded.py`가 연쇄 구동됩니다.
-
----
-
-## 📂 디렉토리 상세 구조
-
+## 디렉터리
 ```text
-KAIB2026/
-├─ config/                # [핵심] 파이프라인 및 UI 설정 (Year, Alias, Schema)
-│  └─ config.yaml         # 기준 연도(Base Year) 및 컬럼 맵핑 정의
-├─ input/                 # 원본 데이터 투입처 (PDF, XLSX)
-├─ output/                # 파이프라인 중간 산출물 및 빌드 스냅샷
-│  └─ merged.json         # 모든 데이터가 집약된 마스터 DB
-├─ scripts/               # 파이프라인 자동화 엔진
-│  ├─ preProc/            # [NEW] PDF 추출 및 원시 데이터 정제 (Step 1~2)
-│  ├─ pipeline/           # 엑셀 변환 및 빌드 프로세스 제어 (Step 3~4)
-│  └─ analysis/           # AI 알고리즘 및 텍스트 분석 로직
-├─ database/              # 업무용 원본 DB 및 백업 보관소
-├─ web/                   # 대시보드 프론트엔드 (Pure HTML/CSS/JS)
-│  ├─ data/               # 대시보드가 실제 참조하는 배포용 JSON
-│  └─ js/ / css/          # 기능별 모듈화된 UI 스크립트 및 스타일
-├─ README.md              # 프로젝트 메인 안내서
-├─ GUIDE.md               # 기술 세부 가이드 및 트러블슈팅
-└─ quick_guide.md         # 운영자를 위한 퀵 명령어 가이드
+BudgetN/
+├─ config/
+│  ├─ config.yaml
+│  ├─ config_a4.yaml
+│  ├─ config_export.yaml
+│  └─ template.json
+├─ database/
+│  ├─ src/
+│  ├─ raw/
+│  ├─ structure/
+│  ├─ parse_result/
+│  └─ output/
+├─ scripts/
+│  ├─ preProc/
+│  ├─ pipeline/
+│  └─ analysis/
+├─ web/
+│  ├─ data/
+│  ├─ js/
+│  └─ css/
+├─ README.md
+├─ GUIDE.md
+└─ quick_guide.md
 ```
 
----
+## 7단계 구조
 
-## 🚀 주요 기능 특장점
+### 1. PDF 파싱
+- 입력: `database/src/*.pdf`
+- 스크립트:
+  - `scripts/preProc/pdf_to_json.py`
+  - `scripts/preProc/json_structurer.py`
+  - `scripts/preProc/budget_parser.py`
+- 산출물:
+  - `database/raw/*_raw.json`
+  - `database/structure/*_structured.json`
+  - `database/parse_result/*_parsed.json`
 
-1. **Static Year Configuration**: `config.yaml`에서 `base_year: 2027`로 변경하는 순간, 모든 엑셀 임포트 로직과 웹 UI의 레이블(차트, KPI)이 즉각 차년도 체계로 전환됩니다.
-2. **Stable ID Hashing**: 부처명, 사업명, 사업코드를 조합한 **MD5 해시 ID**를 발급하여, 데이터가 업데이트되더라도 프로젝트 간 고유 연결성을 영구적으로 유지합니다.
-3. **Multi-Step Search**: `AND`, `OR`, `NOT`, `구문 검색`을 지원하는 커스텀 검색 엔진이 탑재되어 대용량(수천 건) 사업 데이터를 실시간 필터링합니다.
-4. **Zero-API-Cost AI**: 외부 유료 LLM API 없이도 `scikit-learn` 기반의 자체 분석망을 통해 사업 중복성과 협업 필요성을 도출합니다.
+### 2. parsed / xlsx / yaml -> merged.json
+- 목적: 여러 입력 포맷을 하나의 canonical schema로 통합
+- 현재 구현 경로:
+  - 총괄 XLSX: `scripts/pipeline/convert.py`
+  - A4 XLSX: `scripts/pipeline/convert_a4.py`
+  - JSON 마이그레이션: `scripts/pipeline/convert.py`
+  - PDF parsed 병합: 현재는 `scripts/preProc/json_manager.py` 또는 별도 후처리 필요
+- 목표 산출물:
+  - `database/output/merged.json`
 
----
+### 3. merged.json -> budget_db.json
+- 목적: 프론트 배포용 canonical copy 생성
+- 현재 구현:
+  - `scripts/pipeline/master_builder.py deploy`
+- 산출물:
+  - `web/data/budget_db.json`
 
-## 🛠 실행 방법
+### 4. budget_db.json 기반 metadata / analysis 생성
+- 목적: 프론트가 사용할 집계와 sidecar 분석 결과 생성
+- 스크립트:
+  - `scripts/analysis/generate_ai_analysis.py`
+- 산출물:
+  - `metadata` 갱신
+  - `analysis` 기본 집계 갱신
+  - `database/output/similarity_analysis.json`
+  - `database/output/collaboration_analysis.json`
 
-### 환경 구축
+### 5. web/data 배포
+- 목적: 프론트가 fetch할 JSON 세트 배치
+- 산출물:
+  - `web/data/budget_db.json`
+  - `web/data/similarity_analysis.json`
+  - `web/data/collaboration_analysis.json`
+
+### 6. embedded JS 재생성
+- 목적: fallback / 정적 배포 / 일부 고급 탭 지원
+- 스크립트:
+  - `scripts/pipeline/rebuild_embedded.py`
+- 산출물:
+  - `web/js/embedded-data.js`
+  - `web/js/embedded-sim-v10-data.js`
+  - `web/js/embedded-collab-data.js`
+  - `web/js/embedded-hybrid-data.js`
+
+### 7. web 프론트엔드 구동
+- 기본 데이터:
+  - `web/data/budget_db.json`
+- 추가 데이터:
+  - `web/data/collaboration_analysis.json`
+  - embedded JS들
+- 비고:
+  - `index.html`은 `budget_db.json` 중심으로 동작
+  - `duplicate.html` 등 고급 기능은 sidecar / embedded 데이터 의존성이 더 큼
+
+## 실행 예시
+
+### PDF 전처리
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # (Windows: .venv\Scripts\activate)
-pip install -r requirements.txt
+python scripts/preProc/main_cli.py -i database/src -y
 ```
 
-### 빌드 및 배포 일괄 실행
+### 총괄 XLSX 템플릿 생성
 ```bash
-# 엑셀/JSON 통합 빌드 및 AI 분석
+python scripts/pipeline/excel_manager.py template
+```
+
+### XLSX -> merged.json
+```bash
+python scripts/pipeline/excel_manager.py import --type both
+```
+
+### 통합 빌드
+```bash
 python scripts/pipeline/master_builder.py build
+```
 
-# 분석 결과 웹 대시보드 반영
+### 웹 배포
+```bash
 python scripts/pipeline/master_builder.py deploy
 ```
 
----
+## XLSX 템플릿 상태
+현재는 공식 총괄 XLSX 템플릿을 코드로 생성할 수 있습니다.
 
-## 🤝 유지보수 원칙
-- **Data First**: 모든 변경은 `config.yaml`의 스키마 정의를 우선 확인한 후 코드를 수정합니다.
-- **Pure Web**: 프레임워크 의존성 없이 순수 JS/CSS를 유지하여 오프라인 배포 시 호환성을 극대화합니다.
-- **Traceable Logging**: 모든 변환 작업은 `logs/` 폴더에 타임스탬프와 함께 기록되어 데이터 누락을 추적합니다.
+생성 명령:
+```bash
+python scripts/pipeline/excel_manager.py template
+```
+
+기본 생성 파일:
+- `template_project.xlsx`
+
+참고용 파일:
+- `web/template/projects_template.csv`
+- `web/template/sub_projects_template.csv`
+
+주의:
+- CSV 파일들은 컬럼 참고용 예시입니다.
+- `convert.py`는 CSV가 아니라 다중 시트를 가진 XLSX/XLSM을 읽습니다.
+- 실제 import는 생성된 `template_project.xlsx` 또는 동일 구조의 파일을 사용해야 합니다.
+
+실제 총괄 XLSX가 만족해야 하는 조건:
+- 시트명:
+  - `사업목록`
+  - `내역사업`
+  - `사업관리자`
+  - `사업연혁`
+  - `연도별예산`
+- 헤더 행: 2행
+- 데이터 시작 행: 3행
+- 필수 필드:
+  - `사업코드`
+  - `사업명`
+  - `부처명`
+  - 기준연도 예산 컬럼
+
+A4 XLSX는 별도 규칙입니다.
+- `convert_a4.py`는 Named Range 기반 템플릿을 기대합니다.
+- `config_a4.yaml`의 `enable_named_ranges: true` 조건이 유지되어야 합니다.
+
+## 현재 확인된 구조 이슈
+- `database/output/merged.json`이 항상 남는 구조가 아직 고정되지 않았습니다.
+- 기존 산출물에는 `sub_projects[].budget_base`가 없을 수 있으며, 현재 파이프라인은 이를 자동 보정합니다.
+- `collaboration_analysis.json`은 프론트가 기대하는 `collaboration_chains`, `collaboration_network`, `summary_statistics`를 아직 생성하지 않습니다.
+- `config/template.json`은 flattened 예전 스키마 형태라 실제 nested canonical 데이터와 맞지 않습니다.
+
+## 다음 권장 작업
+1. `database/output/merged.json`을 canonical final로 고정
+2. 기존 데이터셋을 재빌드해 `sub_projects[].budget_base` 반영
+3. 생성된 총괄 XLSX 템플릿을 기준 템플릿으로 운영 고정
+4. `collaboration_analysis.json` 구조를 프론트 기대값에 맞게 확장
+5. `template.json`을 nested canonical schema 기준으로 재작성

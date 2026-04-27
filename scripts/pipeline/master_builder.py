@@ -79,7 +79,7 @@ def create_unified_snapshot():
         shutil.copy(merged_json, snapshot_json)
         print(f"  -> Created {snapshot_json.name}")
 
-    for fname in ["similarity_analysis.json", "collaboration_analysis.json"]:
+    for fname in ["similarity_analysis.json", "collaboration_analysis.json", "hybrid_similarity.json"]:
         src = out_dir / fname
         if src.exists():
             new_name = f"{fname.split('.')[0]}_{today}.json"
@@ -100,27 +100,32 @@ def deploy():
     merged = path_config.MERGED_JSON_PATH
     sim = out_dir / "similarity_analysis.json"
     col = out_dir / "collaboration_analysis.json"
+    hyb = out_dir / "hybrid_similarity.json"
     
     success_count = 0
     if merged.exists():
         shutil.copy(merged, web_data / "budget_db.json")
-        print(f" ✅ Deployed budget_db.json to {web_data}")
+        print(f"Deployed budget_db.json to {web_data}")
         success_count += 1
     if sim.exists():
         shutil.copy(sim, web_data / "similarity_analysis.json")
-        print(" ✅ Deployed similarity_analysis.json")
+        print("Deployed similarity_analysis.json")
         success_count += 1
     if col.exists():
         shutil.copy(col, web_data / "collaboration_analysis.json")
-        print(" ✅ Deployed collaboration_analysis.json")
+        print("Deployed collaboration_analysis.json")
+        success_count += 1
+    if hyb.exists():
+        shutil.copy(hyb, web_data / "hybrid_similarity.json")
+        print("Deployed hybrid_similarity.json")
         success_count += 1
 
     if success_count > 0:
         print("\nRebuilding embedded JS for fast UI rendering...")
         subprocess.run([sys.executable, str(ROOT / "scripts" / "pipeline" / "rebuild_embedded.py")], check=True)
-        print("\n🎉 Deploy Complete! 로컬 웹 새로고침으로 확인하세요.")
+        print("\nDeploy complete. 로컬 웹 새로고침으로 확인하세요.")
     else:
-        print("❌ Deploy 실패: output 폴더에 배포할 JSON 파일이 없습니다. 먼저 build 명령을 실행하세요.")
+        print("Deploy failed: output 폴더에 배포할 JSON 파일이 없습니다. 먼저 build 명령을 실행하세요.")
 
 def main():
     parser = argparse.ArgumentParser(description="마스터 빌드 통합 제어 스크립트")
