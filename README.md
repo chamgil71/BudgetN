@@ -334,8 +334,9 @@ git push origin main
 
 ## 🔗 관련 상세 문서
 
+* [🏛️ 아키텍처 (architecture.md)](docs/architecture.md) — 7단계 파이프라인·레이어·데이터 계약·알려진 이슈
 * [📘 기술 가이드 (GUIDE.md)](GUIDE.md) — canonical schema 정의·XLSX 입력 조건·프론트 의존성 점검
 * [⚡ 빠른 명령 참조 (quick_guide.md)](quick_guide.md) — 자주 쓰는 운영 명령 한눈에 정리
 * [🏗️ 파이프라인 스크립트 구조](scripts/pipeline/PIPELINE_OVERVIEW.md) — `scripts/pipeline/` 폴더 상세 역할 및 연관관계
-* [📝 개발 작업 로그 (work_logs.md)](docs/work_logs.md) — 스키마 정의·파이프라인 연결 검토 이력
+* [📝 개발 작업 로그 (worklog.md)](docs/worklog.md) — 스키마 정의·파이프라인 연결 검토 이력
 * [📐 구현 계획 (implementation_plan.md)](docs/implementation_plan.md) — Phase별 구현 우선순위 및 완료 조건

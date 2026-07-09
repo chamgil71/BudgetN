@@ -9,7 +9,7 @@
 ## Facts (무엇을 만드는가)
 
 - 제품 사양·설계의 1차 앵커는 [`docs/spec.md`](./docs/spec.md)입니다. 보조 컨텍스트는 [`README.md`](./README.md)·[`docs/`](./docs/)를 참조합니다.
-- 세션 진행 로그는 루트 [`worklog.md`](./worklog.md)에 누적합니다.
+- 세션 진행 로그는 [`docs/worklog.md`](./docs/worklog.md)에 누적합니다.
 
 ## Project Shape
 
