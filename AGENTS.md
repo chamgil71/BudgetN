@@ -2,9 +2,9 @@
 
 정부 예산 데이터 파이프라인 & 웹 대시보드 프로젝트. 이 문서는 이 레포에서 AI 에이전트가 수행하는 모든 작업의 **최상위 진입점(SSOT)**입니다.
 
-- **적용 프로필**: `standard` — [`agent/profiles/standard.md`](./agent/profiles/standard.md)
-- **오케스트레이션**: 복수 단계 작업 전 [`agent/orchestration.md`](./agent/orchestration.md)의 라우팅·의존성·롤백 규칙을 따릅니다.
-- **거버넌스 엔진**: 구현/검증 패턴이 필요할 때 [`agent/knowledge/`](./agent/knowledge/)를 물리적으로 읽어(`view_file`) 적용합니다.
+- **적용 프로필**: `standard` — [`standard.md`](./.claude/reference/profiles/standard.md)
+- **오케스트레이션**: 복수 단계 작업 전 [`orchestration.md`](./.claude/reference/orchestration.md)의 라우팅·의존성·롤백 규칙을 따릅니다.
+- **거버넌스 엔진**: 단계별 절차는 [`.claude/skills/`](./.claude/skills/)의 스킬(`/strategy` ~ `/ai-governance`)이, 상시 코딩 규칙은 [`.claude/rules/`](./.claude/rules/)가 담당합니다. 두 곳 다 세션 시작 시 자동으로 로드되거나 필요할 때 호출됩니다.
 
 ## Facts (무엇을 만드는가)
 
