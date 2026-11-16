@@ -1,11 +1,16 @@
 import json
 import os
 import sys
+from pathlib import Path
+
+# 프로젝트 루트(scripts/legacy_tools 에서 두 단계 위)를 import 경로에 넣고 경로 SSOT(config/path_config) 사용
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from config.path_config import WEB_DATA_DIR  # noqa: E402
 
 def filter_by_department(dept_name: str):
-    base_dir = r"c:\ai\KAIB2026"
-    input_file = os.path.join(base_dir, "data", "budget_db.json")
-    output_file = os.path.join(base_dir, "data", f"budget_db_{dept_name}.json")
+    # 예전 c:\ai\KAIB2026\data (없는 경로) 대신 현재 budget_db.json 위치인 web/data
+    input_file = str(WEB_DATA_DIR / "budget_db.json")
+    output_file = str(WEB_DATA_DIR / f"budget_db_{dept_name}.json")
     
     if not os.path.exists(input_file):
         print(f"Error: {input_file} not found.")
