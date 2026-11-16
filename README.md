@@ -121,7 +121,7 @@ KAIB2026/
 │   ├── analysis/
 │   │   └── generate_ai_analysis.py  # AI 유사도·협업 분석 생성
 │   ├── legacy_tools/            # 구버전 데이터 처리 도구 (참고용)
-│   ├── refactor_tools/          # HTML/JS 리팩터링 일회성 유틸
+│   ├── _archive/refactor_tools/ # (보존용) HTML/JS 리팩터링 일회성 유틸
 │   └── utils/                   # 코드 일괄 치환 헬퍼
 ├── web/                         # 프론트엔드 (Node.js 빌드 → GitHub Pages)
 │   ├── data/                    # 프론트 fetch 대상 JSON
@@ -296,7 +296,7 @@ git push origin main
 | 폴더 | 성격 | 사용 시점 |
 | :--- | :--- | :--- |
 | `scripts/legacy_tools/` | CSV↔JSON 변환, 부서 필터, GUI 데이터 조회 | 구버전 데이터 마이그레이션 시 |
-| `scripts/refactor_tools/` | HTML 인라인 JS 분리, 대용량 라인 탐색 | 리팩터링 완료 후 보존용 |
+| `scripts/_archive/refactor_tools/` | HTML 인라인 JS 분리, 대용량 라인 탐색 | 보존용 (실행 대상 아님) |
 | `scripts/utils/` | 연도 하드코딩 제거, config 병합, JSON 일괄 치환 | 연도 변경 시 재사용 가능 |
 
 ---

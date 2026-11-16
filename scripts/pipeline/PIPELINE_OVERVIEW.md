@@ -1,6 +1,6 @@
 # KAIB2026 파이프라인 스크립트 구조 및 사용법 정리
 
-본 문서는 `scripts/pipeline` 폴더(및 analysis/utils/refactor_tools) 내 주요 스크립트들의 역할, 사용법, 그리고 전체 파이프라인의 연관관계를 정리한 것입니다. (legacy_tools 폴더 제외)
+본 문서는 `scripts/pipeline` 폴더(및 analysis/utils) 내 주요 스크립트들의 역할, 사용법, 그리고 전체 파이프라인의 연관관계를 정리한 것입니다. (legacy_tools 폴더 제외)
 
 ---
 
@@ -83,7 +83,7 @@
 ---
 
 ## 5. 기타
-- `refactor_tools`, `utils` 폴더는 데이터 전처리/정제, 코드 리팩토링 등 보조 스크립트로, 메인 파이프라인과 직접 연결되진 않음.
+- `utils` 폴더(및 보존용 `_archive/refactor_tools`)는 데이터 전처리/정제, 코드 리팩토링 등 보조 스크립트로, 메인 파이프라인과 직접 연결되진 않음.
 - `pdfto` 폴더는 향후 PDF→JSON 변환 등 신규 파이프라인에 활용 예정(현재 독립적).
 
 ---

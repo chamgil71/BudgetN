@@ -20,7 +20,7 @@
 
 ---
 
-## 2. `scripts/refactor_tools/` — HTML 분리 리팩터링 도구
+## 2. `scripts/_archive/refactor_tools/` — HTML 분리 리팩터링 도구 (보존용, 2026-11-16 이동)
 
 거대한 단일 `index.html`에서 JS 코드·데이터를 외부 파일로 분리할 때 사용한 일회성 도구들입니다.
 
@@ -52,5 +52,5 @@ JS/HTML/CSS의 연도 하드코딩을 동적 변수로 교체하는 리팩터링
 | 폴더 | 성격 | 현재 필요 여부 |
 |------|------|---------------|
 | `legacy_tools` | 데이터 파이프라인 (CSV→JSON, 필터, 내보내기) | 데이터 재처리 시 참고용 |
-| `refactor_tools` | index.html 분리 작업 잔재 | 리팩터링 완료 후 보존용 |
+| `_archive/refactor_tools` | index.html 분리 작업 잔재 | 보존용 (실행 대상 아님, `scripts/_archive/README.md`) |
 | `utils` | 연도 하드코딩 제거 리팩터링 헬퍼 | 추가 연도 변경 시 재사용 가능 |
